@@ -1,0 +1,20 @@
+{
+  "name": "educational-chess-engine-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Educational Stockfish Online Chess Engine & Analysis Platform Monorepo",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "apps/web/client"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=apps/web/client",
+    "dev:client": "npm run dev --workspace=apps/web/client",
+    "dev:server": "npm run dev --workspace=apps/server"
+  },
+  "devDependencies": {
+    "puppeteer": "^25.10.0"
+  }
+}

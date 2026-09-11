@@ -1,0 +1,22 @@
+{
+  "name": "educational-chess-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node src/index.js",
+    "start": "node src/index.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "dependencies": {
+    "@chess/core": "*",
+    "@chess/protocol": "*",
+    "@fastify/cors": "^8.5.0",
+    "@fastify/websocket": "^8.3.1",
+    "dotenv": "^16.4.1",
+    "fastify": "^4.26.0",
+    "ioredis": "^6.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.9.1"
+  }
+}

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://educational-chess.example.com/sitemap.xml
