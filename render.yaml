@@ -2,7 +2,7 @@ services:
   - type: web
     name: chess-api
     runtime: node
-    plan: starter
+    plan: free
     region: oregon
     buildCommand: npm ci
     startCommand: node apps/server/src/index.js
