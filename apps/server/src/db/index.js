@@ -178,7 +178,7 @@ async function runMigrations(dbPool) {
       byes_count INT NOT NULL DEFAULT 0,
       withdrawn BOOLEAN NOT NULL DEFAULT FALSE,
       seed INT NULL,
-      rank INT NULL,
+      \`rank\` INT NULL,
       joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       UNIQUE KEY uq_tournament_user (tournament_id, user_id)
     );`,
@@ -347,7 +347,16 @@ export function isUsingMysql() {
   return isMysqlConnected;
 }
 
+export async function closeDb() {
+  if (pool) {
+    await pool.end();
+    pool = null;
+    isMysqlConnected = false;
+  }
+}
+
 export function _setPoolForTesting(mockPool, mockConnected = true) {
   pool = mockPool;
   isMysqlConnected = mockConnected;
 }
+

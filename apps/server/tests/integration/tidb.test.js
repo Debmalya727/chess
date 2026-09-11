@@ -1,7 +1,7 @@
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
-import { initDb, getPool, isUsingMysql } from '../../src/db/index.js';
+import { initDb, getPool, isUsingMysql, closeDb } from '../../src/db/index.js';
 import { createUser, findUserById } from '../../src/db/userRepository.js';
 import { createGame, findGameById, updateGameStatus } from '../../src/db/gameRepository.js';
 import { createMove, findMovesByGameId } from '../../src/db/moveRepository.js';
@@ -50,7 +50,7 @@ test('TiDB Cloud & Phase 5 Integration Test Suite', async (t) => {
 
     const pool = getPool();
     const conn = await pool.getConnection();
-    const testUserId = `test-user-${crypto.randomUUID()}`;
+    const testUserId = crypto.randomUUID();
 
     try {
       await conn.beginTransaction();
@@ -73,13 +73,13 @@ test('TiDB Cloud & Phase 5 Integration Test Suite', async (t) => {
   });
 
   await t.test('4. Atomic Game Completion & Elo Rating Deduplication', async () => {
-    const userA = { id: `ua-${crypto.randomUUID()}`, username: `playerA_${Date.now()}`, email: `a_${Date.now()}@ex.com`, passwordHash: 'pwd' };
-    const userB = { id: `ub-${crypto.randomUUID()}`, username: `playerB_${Date.now()}`, email: `b_${Date.now()}@ex.com`, passwordHash: 'pwd' };
+    const userA = { id: crypto.randomUUID(), username: `playerA_${Date.now()}`, email: `a_${Date.now()}@ex.com`, passwordHash: 'pwd' };
+    const userB = { id: crypto.randomUUID(), username: `playerB_${Date.now()}`, email: `b_${Date.now()}@ex.com`, passwordHash: 'pwd' };
 
     await createUser(userA);
     await createUser(userB);
 
-    const gameId = `game-${crypto.randomUUID()}`;
+    const gameId = crypto.randomUUID();
     await createGame({
       id: gameId,
       roomCode: `R${Math.floor(1000 + Math.random() * 9000)}`,
@@ -172,7 +172,7 @@ test('TiDB Cloud & Phase 5 Integration Test Suite', async (t) => {
   });
 
   await t.test('6. Active Game State Restoration from Database', async () => {
-    const gameId = `restoration-${crypto.randomUUID()}`;
+    const gameId = crypto.randomUUID();
     await createGame({
       id: gameId,
       roomCode: `RC${Math.floor(1000 + Math.random() * 9000)}`,
@@ -211,4 +211,7 @@ test('TiDB Cloud & Phase 5 Integration Test Suite', async (t) => {
     assert.equal(restoredEngine.getTurn(), 'b');
   });
 
+  after(async () => {
+    await closeDb();
+  });
 });
