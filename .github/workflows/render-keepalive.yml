@@ -1,0 +1,32 @@
+name: Render Keep Alive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render
+        run: |
+          set -e
+          echo "Pinging Render health endpoint..."
+          status=$(curl -sS -o /tmp/render-health.json \
+            -w "%{http_code}" \
+            --connect-timeout 10 \
+            --max-time 30 \
+            https://chess-api-hszp.onrender.com/health)
+
+          echo "HTTP status: $status"
+
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            echo "Render health check failed"
+            cat /tmp/render-health.json || true
+            exit 1
+          fi
+
+          cat /tmp/render-health.json
+          echo
+          echo "Render keep-alive successful."
