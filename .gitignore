@@ -31,3 +31,6 @@ empty_temp/
 .idea/
 .DS_Store
 Thumbs.db
+
+.vercel
+.env*
