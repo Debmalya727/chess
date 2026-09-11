@@ -10,7 +10,7 @@
     "apps/web/client"
   ],
   "scripts": {
-    "build": "npm run build --workspace=apps/web/client",
+    "build": "node scripts/build.js",
     "dev:client": "npm run dev --workspace=apps/web/client",
     "dev:server": "npm run dev --workspace=apps/server"
   },
