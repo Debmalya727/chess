@@ -15,8 +15,8 @@ jobs:
           echo "Pinging Render health endpoint..."
           status=$(curl -sS -o /tmp/render-health.json \
             -w "%{http_code}" \
-            --connect-timeout 10 \
-            --max-time 30 \
+            --connect-timeout 15 \
+            --max-time 60 \
             https://chess-api-hszp.onrender.com/health)
 
           echo "HTTP status: $status"
