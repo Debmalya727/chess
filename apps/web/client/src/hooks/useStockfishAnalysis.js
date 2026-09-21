@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { StockfishClient } from '../engine/StockfishClient.js';
 
 export function useStockfishAnalysis(fen, options = {}) {
-  const { depth = 20, multipv = 3 } = options;
+  const { depth = 20, multipv = 3, enabled = true } = options;
 
   const [engineStatus, setEngineStatus] = useState('initializing');
   const [engineAvailable, setEngineAvailable] = useState(false);
@@ -47,11 +47,16 @@ export function useStockfishAnalysis(fen, options = {}) {
   }, []);
 
   useEffect(() => {
-    if (clientRef.current && fen) {
+    if (clientRef.current && fen && enabled) {
       setIsAnalyzing(true);
       clientRef.current.startAnalysis(fen, optionsRef.current);
+    } else if (clientRef.current && !enabled) {
+      clientRef.current.stopAnalysis();
+      setIsAnalyzing(false);
+      setLines([]);
+      setBestMove(null);
     }
-  }, [fen, depth, multipv]);
+  }, [fen, depth, multipv, enabled]);
 
   const startAnalysis = useCallback((targetFen) => {
     if (clientRef.current) {

@@ -46,12 +46,19 @@ function MainAppContent() {
   } = useChessGame();
 
   const currentDiff = DIFFICULTY_LEVELS[difficulty] || DIFFICULTY_LEVELS.MEDIUM;
-  const activeDepth = activeMode === GAME_MODES.COMPUTER ? currentDiff.depth : analysisDepth;
-  const activeMultiPV = activeMode === GAME_MODES.COMPUTER ? currentDiff.multipv : analysisMultiPV;
+  const isAnalysisMode = activeMode === GAME_MODES.ANALYSIS;
+  const isComputerMode = activeMode === GAME_MODES.COMPUTER;
+
+  const activeDepth = isComputerMode ? currentDiff.depth : analysisDepth;
+  const activeMultiPV = isComputerMode ? currentDiff.multipv : analysisMultiPV;
+
+  // Stockfish analysis is ONLY enabled in Analysis mode or on Computer's turn to calculate its move.
+  // It is NEVER active on human player turns against opponents (Computer, Local 2P, Online).
+  const analysisEnabled = isAnalysisMode || (isComputerMode && turn === computerColor && !isGameOver);
 
   const {
     engineStatus, engineAvailable, isAnalyzing, lines, bestMove
-  } = useStockfishAnalysis(fen, { depth: activeDepth, multipv: activeMultiPV });
+  } = useStockfishAnalysis(fen, { depth: activeDepth, multipv: activeMultiPV, enabled: analysisEnabled });
 
   // Clock Countdown logic for Local 2-Player mode
   useEffect(() => {
@@ -79,8 +86,9 @@ function MainAppContent() {
     setBlackTimeMs(mins * 60 * 1000);
   }, [timeControl]);
 
-  // Parse bestMove string into { from, to } for board highlight
-  const engineBestMove = bestMove && bestMove !== '(none)' && !isGameOver ? {
+  // Parse bestMove string into { from, to } for board highlight ONLY in Analysis mode.
+  // Move suggestions on the board are completely removed when playing vs opponents.
+  const engineBestMove = isAnalysisMode && bestMove && bestMove !== '(none)' && !isGameOver ? {
     from: bestMove.slice(0, 2),
     to: bestMove.slice(2, 4),
   } : null;
@@ -167,7 +175,7 @@ function MainAppContent() {
         <main className="main-grid">
           <div className="board-section">
             <div className="board-card">
-              <EvalBar topLine={lines[0]} />
+              {isAnalysisMode && <EvalBar topLine={lines[0]} />}
               <div className="board-col">
                 {activeMode === GAME_MODES.LOCAL && (
                   <ChessClock
@@ -179,10 +187,15 @@ function MainAppContent() {
                 )}
 
                 <div className="player-label top">
-                  <span className="player-dot black" />
-                  {isFlipped ? 'White' : 'Black'}
-                  {!isFlipped && activeMode === GAME_MODES.COMPUTER && turn === computerColor && (
-                    <span className="computer-tag">🤖 Stockfish ({currentDiff.name})</span>
+                  <span className={`player-dot ${isFlipped ? 'white' : 'black'}`} />
+                  {activeMode === GAME_MODES.COMPUTER ? (
+                    isFlipped === (computerColor === 'w') ? (
+                      <span className="computer-tag">🤖 Stockfish ({currentDiff.name})</span>
+                    ) : (
+                      <span>You ({playerColor === 'w' ? 'White' : 'Black'})</span>
+                    )
+                  ) : (
+                    <span>{isFlipped ? 'White' : 'Black'}</span>
                   )}
                   {turn === (isFlipped ? 'w' : 'b') && !isGameOver && (
                     <span className="to-move-indicator" />
@@ -203,10 +216,15 @@ function MainAppContent() {
                 />
 
                 <div className="player-label bottom">
-                  <span className="player-dot white" />
-                  {isFlipped ? 'Black' : 'White'}
-                  {isFlipped && activeMode === GAME_MODES.COMPUTER && turn === computerColor && (
-                    <span className="computer-tag">🤖 Stockfish ({currentDiff.name})</span>
+                  <span className={`player-dot ${isFlipped ? 'black' : 'white'}`} />
+                  {activeMode === GAME_MODES.COMPUTER ? (
+                    isFlipped === (computerColor === 'w') ? (
+                      <span>You ({playerColor === 'w' ? 'White' : 'Black'})</span>
+                    ) : (
+                      <span className="computer-tag">🤖 Stockfish ({currentDiff.name})</span>
+                    )
+                  ) : (
+                    <span>{isFlipped ? 'Black' : 'White'}</span>
                   )}
                   {turn === (isFlipped ? 'b' : 'w') && !isGameOver && (
                     <span className="to-move-indicator" />
@@ -231,7 +249,12 @@ function MainAppContent() {
             moveHistory={moveHistory}
             historyIndex={historyIndex}
             onGoToMove={goToMove}
-            vsComputer={activeMode === GAME_MODES.COMPUTER}
+            activeMode={activeMode}
+            difficulty={difficulty}
+            onDifficultyChange={setDifficulty}
+            computerColor={computerColor}
+            isGameOver={isGameOver}
+            gameStatus={gameStatus}
             depth={activeDepth}
             multipv={activeMultiPV}
             onDepthChange={setAnalysisDepth}

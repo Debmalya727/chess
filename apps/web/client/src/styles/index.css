@@ -478,6 +478,59 @@ body {
   animation: pulse-dot 1s ease-in-out infinite;
 }
 
+/* ── Opponent Game Match Card ────────────────────── */
+.game-match-card {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.match-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.match-status-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.match-badge {
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.match-badge.active-turn {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.match-badge.thinking {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.match-badge.game-over {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
 /* ── PV Lines ────────────────────────────────────── */
 .pv-list { display: flex; flex-direction: column; gap: 0.6rem; }
 
@@ -546,8 +599,6 @@ body {
 .move-history-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 
 .move-table { width: 100%; border-collapse: collapse; }
-
-.move-row { }
 
 .move-num {
   padding: 0.25rem 0.5rem 0.25rem 0.875rem;
