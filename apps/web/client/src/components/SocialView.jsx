@@ -42,7 +42,7 @@ export function SocialView({ onSelectUser }) {
   const offlineFriends = friends.filter(f => f.presence !== 'online' && f.presence !== 'playing');
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '24px', color: '#fff' }}>
+    <div className="social-view-wrapper" style={{ maxWidth: '900px', margin: '0 auto', color: '#fff' }}>
       {/* Title & Navigation Tabs */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
@@ -55,7 +55,7 @@ export function SocialView({ onSelectUser }) {
           </p>
         </div>
 
-        <div style={{
+        <div className="social-tabs-container" style={{
           display: 'flex',
           backgroundColor: '#0f172a',
           borderRadius: '12px',

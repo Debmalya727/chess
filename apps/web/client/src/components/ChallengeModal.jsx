@@ -42,13 +42,15 @@ export function ChallengeModal({ isOpen, targetUsername, onClose, onSendChalleng
       zIndex: 1000,
       backdropFilter: 'blur(4px)'
     }}>
-      <div className="glass-panel" style={{
+      <div className="modal-content glass-panel challenge-modal-card" style={{
         backgroundColor: '#1e293b',
         border: '1px solid rgba(255, 255, 255, 0.15)',
         borderRadius: '16px',
         padding: '24px',
         width: '100%',
         maxWidth: '420px',
+        maxHeight: 'calc(100dvh - 2rem)',
+        overflowY: 'auto',
         color: '#fff',
         boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
       }}>

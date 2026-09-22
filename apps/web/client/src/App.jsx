@@ -21,7 +21,7 @@ import { ChallengeNotification } from './components/ChallengeNotification.jsx';
 
 function MainAppContent() {
   const { 
-    activeMode, setActiveMode, difficulty, playerColor, timeControl,
+    activeMode, setActiveMode, difficulty, setDifficulty, playerColor, timeControl,
     replayGameId, openReplay, selectedTournamentId, setSelectedTournamentId, openTournament 
   } = useGameMode();
 
