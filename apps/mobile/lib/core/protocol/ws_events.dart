@@ -22,6 +22,7 @@ abstract class WsEvents {
   static const String clockTick = 'clock:tick';
   static const String gameEnded = 'game:ended';
   static const String drawOffered = 'draw:offered';
+  static const String drawDeclined = 'draw:declined';
   static const String playerPresence = 'player:presence';
   static const String queueStatus = 'queue:status';
   static const String queueMatched = 'queue:matched';
