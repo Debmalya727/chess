@@ -1,9 +1,9 @@
 # M6 Production Hardening — Progress Tracker
 
-**Branch**: `mobile/phase-m6-production-hardening`  
-**Current Phase**: M6 Phase E (COMPLETE)  
-**Next Phase**: M6 Phase F — Build Validation  
-**Last Updated**: 2026-09-24  
+**Branch**: `mobile/phase-m6-production-hardening`
+**Current Phase**: M6 Phase F (COMPLETE)
+**Status**: MILESTONE M6 COMPLETE
+**Last Updated**: 2026-09-24
 
 ---
 
@@ -14,7 +14,7 @@
 - **Phase C — Error Handling Hardening**: ✅ COMPLETE (+17 tests)
 - **Phase D — Protocol Contract Audit**: ✅ COMPLETE (+84 tests)
 - **Phase E — Test Coverage Gaps**: ✅ COMPLETE (+43 tests)
-- **Phase F — Build Validation + README**: ⏳ PENDING
+- **Phase F — Build Validation + Documentation**: ✅ COMPLETE
 
 ---
 
@@ -28,6 +28,7 @@ flutter test --no-pub
 - **Failed**: 0
 - **Skipped**: 0
 - **Total**: 277 / 277 passing (100%)
+- **Execution Time**: ~11s
 
 ---
 
@@ -37,7 +38,20 @@ flutter test --no-pub
 flutter analyze --no-pub
 ```
 
-- **Issues**: 0 found (Clean)
+- **Result**: PASS (0 issues found, ran in 3.4s)
+
+---
+
+## Android Build Validation
+
+```
+$env:JAVA_HOME='D:\JDK17'; flutter build apk --debug
+```
+
+- **Result**: PASS (`√ Built build\app\outputs\flutter-apk\app-debug.apk`)
+- **Artifact Path**: `apps/mobile/build/app/outputs/flutter-apk/app-debug.apk`
+- **Artifact Size**: 381,818,504 bytes (~364.13 MB)
+- **Native Binaries Included**: Stockfish 18 C++ native engine for arm64-v8a, armeabi-v7a, x86_64, x86
 
 ---
 
@@ -108,8 +122,15 @@ flutter analyze --no-pub
 
 ---
 
-## Remaining Work
+## Phase F Detail — Build Validation
 
-- **Phase F — Build Validation + README**:
-  - Perform build validation check
-  - Final documentation update and summary
+- Static analysis: 0 issues (`flutter analyze --no-pub`)
+- Test suite: 277 passing / 0 failing / 0 skipped (`flutter test --no-pub`)
+- Android build: Debug APK compiled cleanly (`app-debug.apk`, 381,818,504 bytes)
+- Hardware verification note: Headless build environment on Windows x64; physical Android device and iOS builds were not executed.
+
+---
+
+## Milestone M6 Summary
+
+All phases A through F are complete. Total new tests added during M6: **157** (Baseline 120 -> Final 277).

@@ -1,14 +1,14 @@
 # M6 Production Hardening — Findings Log
 
-**Branch**: `mobile/phase-m6-production-hardening`  
-**Status**: IN PROGRESS
+**Branch**: `mobile/phase-m6-production-hardening`
+**Status**: COMPLETE
 
 ---
 
 ## Phase A — Architecture Audit
 
-**Completed**: 2026-09-24  
-**Files Reviewed**: 13 core/feature files  
+**Completed**: 2026-09-24
+**Files Reviewed**: 13 core/feature files
 **Analyzer**: 0 issues found
 
 ### A1. Core Layer
@@ -45,7 +45,7 @@
 
 ## Phase B — WebSocket Resilience Testing
 
-**Completed**: 2026-09-24  
+**Completed**: 2026-09-24
 **New Tests**: 13 (in `m6_ws_resilience_test.dart`)
 
 | Group | Tests | Description |
@@ -60,7 +60,7 @@
 
 ## Phase C — Error Handling Hardening
 
-**Completed**: 2026-09-24  
+**Completed**: 2026-09-24
 **New Tests**: 17 (in `m6_state_copywith_test.dart`)
 
 | Group | Tests | Description |
@@ -74,7 +74,7 @@
 
 ## Phase D — Protocol Contract Audit
 
-**Completed**: 2026-09-24  
+**Completed**: 2026-09-24
 **New Tests**: 84 (in `m6_protocol_contract_test.dart`)
 
 | Group | Tests | Description |
@@ -86,35 +86,9 @@
 
 ---
 
-## Findings Summary
-
-### CRITICAL (P0)
-_None found_
-
-### HIGH (P1)
-_None found_
-
-### MEDIUM (P2)
-
-| ID | Location | Status | Issue |
-|----|----------|--------|-------|
-| M6-F001 | `online_game_notifier.dart` | ✅ FIXED | `draw:declined` used hardcoded string; moved to `WsEvents.drawDeclined` |
-| M6-F004 | 4 social/state files | ✅ FIXED | `copyWith` pattern did not preserve `errorMessage`/`actionMessage`; WS event handlers could silently clear user-visible errors |
-| M6-F005 | `tournament_detail_notifier.dart` | ✅ FIXED | `tournament:game_started` WS event was defined but never subscribed to; game-live state not propagated to tournament view |
-
-### LOW (P3)
-
-| ID | Location | Status | Issue |
-|----|----------|--------|-------|
-| M6-F002 | `core/config/app_config.dart` | 🔵 ACCEPTED | `static AppConfig current = production` is mutable — acceptable risk |
-| M6-F003 | `challenges_notifier.dart` | 🔵 ACCEPTED | Hardcoded `color: 'white'` is cosmetic only; authoritative color set on `game:init` |
-| M6-F006 | `ws_events.dart`, `online_game_notifier.dart` | 🔵 ACCEPTED | `WsEvents.gameRematch` stub — defined but never sent (rematch feature deferred to M7) |
-
----
-
 ## Phase E — Test Coverage Gaps
 
-**Completed**: 2026-09-24  
+**Completed**: 2026-09-24
 **New Tests**: 43 (across 4 targeted suites)
 
 | Group | Tests | Target File | Description |
@@ -123,6 +97,19 @@ _None found_
 | E2 | 11 | `auth_repository.dart` | Login, register, logout local storage resilience, duplicate errors, token persistence |
 | E3 | 16 | `matchmaking_notifier.dart` | Queue states (idle, searching, waitingInRoom, matched, error), room ops, dispose cleanup |
 | E4 | 5 | `tournament_detail_notifier.dart` | `tournament:game_started` (M6-F005) handling, tournament ID filtering, refresh idempotency, malformed resilience |
+
+---
+
+## Phase F — Build Validation + Documentation
+
+**Completed**: 2026-09-24
+**Status**: PASS
+
+| Check | Command | Result | Notes |
+|-------|---------|--------|-------|
+| Static Analysis | `flutter analyze --no-pub` | ✅ 0 issues | Clean across all lib/ and test/ files |
+| Full Test Suite | `flutter test --no-pub` | ✅ 277 / 277 passing | 0 failed, 0 skipped, ~11s execution |
+| Android Build | `flutter build apk --debug` | ✅ PASS | `app-debug.apk` (381,818,504 bytes) with native Stockfish 18 binaries |
 
 ---
 
@@ -171,5 +158,4 @@ _None found_
 - [x] Phase C — Error Handling Hardening (copyWith fixes)
 - [x] Phase D — Protocol Contract Audit
 - [x] Phase E — Test Coverage Gaps
-- [ ] **Phase F — Build Validation + README** ← NEXT
-
+- [x] Phase F — Build Validation + Documentation
