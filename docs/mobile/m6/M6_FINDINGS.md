@@ -112,6 +112,46 @@ _None found_
 
 ---
 
+## Phase E — Test Coverage Gaps
+
+**Completed**: 2026-09-24  
+**New Tests**: 43 (across 4 targeted suites)
+
+| Group | Tests | Target File | Description |
+|-------|-------|-------------|-------------|
+| E1 | 11 | `games_repository.dart` | History parsing, pagination, PGN string/JSON, moves, snake_case fallbacks, error propagation |
+| E2 | 11 | `auth_repository.dart` | Login, register, logout local storage resilience, duplicate errors, token persistence |
+| E3 | 16 | `matchmaking_notifier.dart` | Queue states (idle, searching, waitingInRoom, matched, error), room ops, dispose cleanup |
+| E4 | 5 | `tournament_detail_notifier.dart` | `tournament:game_started` (M6-F005) handling, tournament ID filtering, refresh idempotency, malformed resilience |
+
+---
+
+## Findings Summary
+
+### CRITICAL (P0)
+_None found_
+
+### HIGH (P1)
+_None found_
+
+### MEDIUM (P2)
+
+| ID | Location | Status | Issue |
+|----|----------|--------|-------|
+| M6-F001 | `online_game_notifier.dart` | ✅ FIXED | `draw:declined` used hardcoded string; moved to `WsEvents.drawDeclined` |
+| M6-F004 | 4 social/state files | ✅ FIXED | `copyWith` pattern did not preserve `errorMessage`/`actionMessage`; WS event handlers could silently clear user-visible errors |
+| M6-F005 | `tournament_detail_notifier.dart` | ✅ FIXED | `tournament:game_started` WS event was defined but never subscribed to; game-live state not propagated to tournament view |
+
+### LOW (P3)
+
+| ID | Location | Status | Issue |
+|----|----------|--------|-------|
+| M6-F002 | `core/config/app_config.dart` | 🔵 ACCEPTED | `static AppConfig current = production` is mutable — acceptable risk |
+| M6-F003 | `challenges_notifier.dart` | 🔵 ACCEPTED | Hardcoded `color: 'white'` is cosmetic only; authoritative color set on `game:init` |
+| M6-F006 | `ws_events.dart`, `online_game_notifier.dart` | 🔵 ACCEPTED | `WsEvents.gameRematch` stub — defined but never sent (rematch feature deferred to M7) |
+
+---
+
 ## Test Progress
 
 | Phase | New Tests | Running Total |
@@ -120,6 +160,7 @@ _None found_
 | Phase B (WS Resilience) | +13 | 133 |
 | Phase C (Error Handling) | +17 | 150 |
 | Phase D (Protocol Contract) | +84 | 234 |
+| Phase E (Coverage Gaps) | +43 | 277 |
 
 ---
 
@@ -129,5 +170,6 @@ _None found_
 - [x] Phase B — WebSocket Resilience Testing
 - [x] Phase C — Error Handling Hardening (copyWith fixes)
 - [x] Phase D — Protocol Contract Audit
-- [ ] **Phase E — Test Coverage Gaps** ← NEXT
-- [ ] Phase F — Build Validation + README
+- [x] Phase E — Test Coverage Gaps
+- [ ] **Phase F — Build Validation + README** ← NEXT
+
