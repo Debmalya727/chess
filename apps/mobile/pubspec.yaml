@@ -40,6 +40,8 @@ dependencies:
   web_socket_channel: ^3.0.3
   flutter_secure_storage: ^11.2.0
   intl: ^0.20.3
+  stockfish_flutter_plus:
+    path: packages/stockfish_flutter_plus
 
 dev_dependencies:
   flutter_test:

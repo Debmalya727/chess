@@ -1,0 +1,25 @@
+# ninja log v5
+45	2572	8119296620457890	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/memory.cpp.o	5fee2213e13cdd8
+15	2921	8119296624014974	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/bitboard.cpp.o	e5c2ef8a11356cb6
+84	3400	8119296627036680	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/nnue/features/half_ka_v2_hm.cpp.o	ede571c9d28a8285
+64	3419	8119296627871954	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/movepick.cpp.o	14b6909e2660b3b4
+73	3468	8119296629453365	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/movegen.cpp.o	d12c139d69200694
+37	3689	8119296631369936	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/benchmark.cpp.o	7f93cf5c9f07957c
+22	3747	8119296631593026	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/misc.cpp.o	169583fcb8cd5cc5
+1	3918	8119296633443524	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/evaluate.cpp.o	d4b38262547eba9d
+166	4062	8119296634805165	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/timeman.cpp.o	f8ed7efad9dbcea0
+29	4094	8119296635375126	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/FlutterStockfish/ffi.cpp.o	3c08ea9b23124158
+140	4270	8119296637437738	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/score.cpp.o	44bb486d4a845d6d
+54	4380	8119296638556195	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/main.cpp.o	9d08a3140349b578
+115	4469	8119296639431356	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/nnue/nnue_misc.cpp.o	3d1a2fac792e5377
+105	4722	8119296642024348	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/position.cpp.o	be6e8b935509bde2
+94	4789	8119296642465546	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/nnue/network.cpp.o	10c2c2d5f5eaf87b
+2583	5653	8119296651371458	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/ucioption.cpp.o	1bbc18a7be6fa840
+153	5812	8119296652816115	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/syzygy/tbprobe.cpp.o	f4bf569f7f47d51
+127	5845	8119296653152138	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/search.cpp.o	5a93d0a32493809a
+3420	6032	8119296655215314	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/tune.cpp.o	a456da6bd2dbb258
+8	6124	8119296655969738	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/engine.cpp.o	76bed1466fa8059e
+3403	6362	8119296658567357	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/tt.cpp.o	32478f0f8a34e285
+2922	7032	8119296665160076	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/thread.cpp.o	cef2bd715ab743a9
+3469	7192	8119296666754721	CMakeFiles/stockfish.dir/D_/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/ios/Stockfish/src/uci.cpp.o	8f7179c2492733f3
+7192	7420	8119296668351075	D:/Projects/Chess/apps/mobile/build/stockfish_flutter_plus/intermediates/cxx/Debug/2m313z26/obj/x86_64/libstockfish.so	4f05a31f5f02c69e

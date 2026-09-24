@@ -1,0 +1,1 @@
+D:\Projects\Chess\apps\mobile\packages\stockfish_flutter_plus\android\CMakeLists.txt

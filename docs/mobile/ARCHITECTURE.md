@@ -128,3 +128,32 @@ Mobile networks change state dynamically (Wi-Fi to cellular, tunnel drops, scree
 | Static Analysis | `flutter analyze` | 0 issues found |
 | Test Execution | `flutter test` | 22 / 22 tests passed |
 | Production Scope | Existing web and server code | 0 modifications |
+
+---
+
+## 8. Phase M1: Native Stockfish Engine Integration
+
+Phase M1 integrates a REAL native Stockfish 18 C++ engine into `apps/mobile/` via Dart FFI and Android NDK compilation:
+
+```
+Flutter UI (ComputerScreen / AnalysisScreen)
+              │
+              ▼
+    EngineService / Riverpod
+              │
+              ▼
+   NativeStockfishService
+   (Serialized UCI Queue & State Machine)
+              │
+              ▼
+           Dart FFI
+              │
+              ▼
+   Native Stockfish C++ Thread
+   (Android NDK libstockfish.so / iOS clang)
+```
+
+- **Fair Play Separation**: Computer Mode hides all evaluation/arrows from the human; Online and Local 2P modes NEVER instantiate the engine.
+- **Computer Mode**: Stockfish difficulty levels 1–8 mapped to UCI `Skill Level`, depth, and move time.
+- **Analysis Mode**: Real-time evaluation stream, `EvalBarWidget`, Multi-PV (1–3 lines), and FEN navigation.
+- **Documentation**: See [STOCKFISH.md](file:///D:/Projects/Chess/docs/mobile/STOCKFISH.md) and [LICENSE.md](file:///D:/Projects/Chess/docs/mobile/stockfish/LICENSE.md).

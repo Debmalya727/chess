@@ -1,0 +1,3 @@
+D:/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/android/.cxx/Debug/2m313z26/arm64-v8a/CMakeFiles/stockfish.dir
+D:/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/android/.cxx/Debug/2m313z26/arm64-v8a/CMakeFiles/edit_cache.dir
+D:/Projects/Chess/apps/mobile/packages/stockfish_flutter_plus/android/.cxx/Debug/2m313z26/arm64-v8a/CMakeFiles/rebuild_cache.dir
