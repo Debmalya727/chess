@@ -1,8 +1,8 @@
 # M7 — Social Polish & Post-Game Lifecycle Progress Tracker
 
 **Branch**: `mobile/phase-m6-production-hardening`
-**Current Phase**: Phase 4 — Web Rematch Client (COMPLETE)
-**Status**: PHASE 4 COMPLETE / VERIFIED / AWAITING USER INSTRUCTION
+**Current Phase**: M7 Final Closure (COMPLETE)
+**Status**: COMPLETE WITH LIMITATIONS / M7 CLOSED
 **Last Updated**: 2026-09-25
 
 ---
@@ -96,7 +96,8 @@ Milestone M7 follows the successful completion of M6 Production Hardening. Its p
   - [x] Step 15 — Scope Validation (Zero server/mobile/packages modifications)
   - [x] Step 16 — Documentation (`M7_PHASE4_WEB_REPORT.md`, `M7_PROGRESS.md`, `M7_FINDINGS.md`)
   - [x] Step 17 — Phase 4 Commit
-- [ ] **Phase 5 — End-to-End Verification & Build Validation** (Not Started)
+- [x] **Phase 5 — Full Integration & Live Rematch Validation** (COMPLETE WITH LIMITATIONS)
+- [x] **Phase 6 — Production Deployment & Smoke Validation** (COMPLETE WITH LIMITATIONS)
 
 ---
 
@@ -260,3 +261,35 @@ Milestone M7 follows the successful completion of M6 Production Hardening. Its p
    - Production Web UI: Verified `client-psi-five-25.vercel.app` is live and connected, bundle contains all M7 client handlers (PASS)
 3. **M7 Final Status**:
    - **COMPLETE WITH LIMITATIONS**
+
+---
+
+## M7 Final Closure
+
+State:
+
+M7 implementation:
+COMPLETE
+
+Local integration:
+COMPLETE
+
+Production deployment:
+COMPLETE
+
+Production smoke validation:
+COMPLETE WITH LIMITATIONS
+
+Production tournament guard:
+NOT EXECUTED
+
+Production concurrency:
+NOT EXECUTED
+
+Application deployment commit:
+82b59a1
+
+Documentation closure commit:
+43dc7d1
+
+M7 is closed.
