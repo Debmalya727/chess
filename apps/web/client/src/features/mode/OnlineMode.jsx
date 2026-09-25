@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Globe, Plus, Copy, Check, Users, ShieldAlert, Flag, Shield, Zap, Download, RefreshCw, Trophy } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { globalWsClient } from '../../services/wsClient.js';
@@ -11,12 +11,23 @@ export function OnlineMode() {
   const { user, token, openAuthModal } = useAuth();
 
   const [connStatus, setConnStatus] = useState('DISCONNECTED');
-  const [activeGame, setActiveGame] = useState(null); // { gameId, roomCode, status, whitePlayerId, blackPlayerId, color, result, termination, ratingChanges, pgn }
+  const [activeGame, setActiveGame] = useState(null); // { gameId, roomCode, status, whitePlayerId, blackPlayerId, color, result, termination, ratingChanges, pgn, tournamentId }
   const [roomCodeInput, setRoomCodeInput] = useState('');
   const [copied, setCopied] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [drawOfferReceived, setDrawOfferReceived] = useState(false);
   const [opponentPresence, setOpponentPresence] = useState('connected');
+
+  // Rematch UI State
+  const [rematchOfferedByMe, setRematchOfferedByMe] = useState(false);
+  const [rematchOfferReceived, setRematchOfferReceived] = useState(false);
+  const [rematchOfferedByUsername, setRematchOfferedByUsername] = useState(null);
+  const [isRematchLoading, setIsRematchLoading] = useState(false);
+
+  const activeGameRef = useRef(activeGame);
+  useEffect(() => {
+    activeGameRef.current = activeGame;
+  }, [activeGame]);
 
   // Matchmaking State
   const [inQueue, setInQueue] = useState(false);
@@ -84,13 +95,14 @@ export function OnlineMode() {
         status: payload.status || 'ACTIVE',
         whitePlayerId: payload.whitePlayerId || payload.whitePlayer?.id,
         blackPlayerId: payload.blackPlayerId || payload.blackPlayer?.id,
-        whiteUsername: payload.whitePlayer?.username || 'White',
-        blackUsername: payload.blackPlayer?.username || 'Black',
-        whiteRating: payload.whitePlayer?.rating || 1500,
-        blackRating: payload.blackPlayer?.rating || 1500,
+        whiteUsername: payload.whitePlayer?.username || payload.whiteUsername || 'White',
+        blackUsername: payload.blackPlayer?.username || payload.blackUsername || 'Black',
+        whiteRating: payload.whitePlayer?.rating || payload.whiteRating || 1500,
+        blackRating: payload.blackPlayer?.rating || payload.blackRating || 1500,
         timeControl: payload.timeControl || '10+0',
         color: myColor,
-        stateVersion: payload.stateVersion || 1
+        stateVersion: payload.stateVersion || 1,
+        tournamentId: payload.tournamentId || null
       });
       if (payload.roomCode) {
         localStorage.setItem('chess_active_room', payload.roomCode);
@@ -99,7 +111,13 @@ export function OnlineMode() {
       if (payload.clocks) {
         setWhiteTimeMs(payload.clocks.whiteRemainingMs);
         setBlackTimeMs(payload.clocks.blackRemainingMs);
+        setActiveTurn(payload.clocks.activeColor || 'w');
       }
+
+      setRematchOfferedByMe(false);
+      setRematchOfferReceived(false);
+      setRematchOfferedByUsername(null);
+      setIsRematchLoading(false);
     });
 
     const unbindMatched = globalWsClient.on(WS_EVENTS.QUEUE_MATCHED, (payload) => {
@@ -151,13 +169,64 @@ export function OnlineMode() {
       if (payload.finalFen) loadFen(payload.finalFen);
     });
 
-
     const unbindDrawOffer = globalWsClient.on(WS_EVENTS.DRAW_OFFERED, () => {
       setDrawOfferReceived(true);
     });
 
     const unbindPresence = globalWsClient.on(WS_EVENTS.PLAYER_PRESENCE, (payload) => {
       setOpponentPresence(payload.status);
+    });
+
+    const unbindRematchOffered = globalWsClient.on(WS_EVENTS.REMATCH_OFFERED, (payload) => {
+      const currentGame = activeGameRef.current;
+      if (!currentGame || currentGame.gameId !== payload.gameId) return;
+      if (currentGame.status !== 'FINISHED') return;
+
+      if (payload.offeredBy !== user?.id) {
+        setRematchOfferReceived(true);
+        setRematchOfferedByUsername(payload.offeredByUsername || 'Opponent');
+        setIsRematchLoading(false);
+      } else {
+        setRematchOfferedByMe(true);
+        setIsRematchLoading(false);
+      }
+    });
+
+    const unbindRematchDeclined = globalWsClient.on(WS_EVENTS.REMATCH_DECLINED, (payload) => {
+      const currentGame = activeGameRef.current;
+      if (!currentGame || currentGame.gameId !== payload.gameId) return;
+
+      setRematchOfferedByMe(false);
+      setRematchOfferReceived(false);
+      setIsRematchLoading(false);
+    });
+
+    const unbindRematchCancelled = globalWsClient.on(WS_EVENTS.REMATCH_CANCELLED, (payload) => {
+      const currentGame = activeGameRef.current;
+      if (!currentGame || currentGame.gameId !== payload.gameId) return;
+
+      setRematchOfferedByMe(false);
+      setRematchOfferReceived(false);
+      setIsRematchLoading(false);
+
+      if (payload.reason === 'timeout') {
+        setErrorMsg('Rematch offer expired.');
+      } else if (payload.reason === 'opponent_disconnected') {
+        setErrorMsg('Opponent disconnected.');
+      } else if (payload.reason === 'cancelled_by_player') {
+        setErrorMsg('Rematch offer was cancelled.');
+      }
+      setTimeout(() => setErrorMsg(null), 4000);
+    });
+
+    const unbindError = globalWsClient.on(WS_EVENTS.ERROR, (payload) => {
+      const code = payload?.code;
+      if (code && (code.startsWith('REMATCH_') || code === 'GAME_NOT_FINISHED' || code === 'TOURNAMENT_REMATCH_NOT_ALLOWED' || code === 'PLAYER_ALREADY_IN_GAME')) {
+        setIsRematchLoading(false);
+        setRematchOfferedByMe(false);
+        setErrorMsg(payload.message || code);
+        setTimeout(() => setErrorMsg(null), 4000);
+      }
     });
 
     return () => {
@@ -170,6 +239,10 @@ export function OnlineMode() {
       unbindEnded();
       unbindDrawOffer();
       unbindPresence();
+      unbindRematchOffered();
+      unbindRematchDeclined();
+      unbindRematchCancelled();
+      unbindError();
     };
   }, [user, loadFen]);
 
@@ -225,6 +298,35 @@ export function OnlineMode() {
   const downloadPGN = () => {
     if (!activeGame || !activeGame.gameId) return;
     window.open(`/api/games/${activeGame.gameId}/pgn`, '_blank');
+  };
+
+  const handleOfferRematch = () => {
+    if (!activeGame || activeGame.status !== 'FINISHED' || activeGame.tournamentId || rematchOfferedByMe || isRematchLoading) {
+      return;
+    }
+    setIsRematchLoading(true);
+    setRematchOfferedByMe(true);
+    setErrorMsg(null);
+    globalWsClient.offerRematch(activeGame.gameId);
+  };
+
+  const handleRespondRematch = (accept) => {
+    if (!activeGame || activeGame.status !== 'FINISHED') return;
+    if (accept) {
+      setIsRematchLoading(true);
+      setErrorMsg(null);
+    } else {
+      setRematchOfferReceived(false);
+      setIsRematchLoading(false);
+    }
+    globalWsClient.respondRematch(activeGame.gameId, accept);
+  };
+
+  const handleCancelRematch = () => {
+    if (!activeGame || activeGame.status !== 'FINISHED' || !rematchOfferedByMe) return;
+    setRematchOfferedByMe(false);
+    setIsRematchLoading(false);
+    globalWsClient.cancelRematch(activeGame.gameId);
   };
 
   if (!user) {
@@ -365,11 +467,77 @@ export function OnlineMode() {
                 <p style={{ color: '#94a3b8', marginBottom: '1rem' }}>
                   Termination: <strong>{(activeGame.termination || 'COMPLETED').toUpperCase()}</strong> ({activeGame.result})
                 </p>
+                {/* Rematch Controls - Suppressed for Tournament Games */}
+                {!activeGame.tournamentId && (
+                  <div className="rematch-section" style={{ marginBottom: '1rem', padding: '0.75rem', background: '#1e293b', borderRadius: '8px', border: '1px solid #334155' }}>
+                    {rematchOfferReceived ? (
+                      <div className="rematch-offer-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                        <span style={{ color: '#f8fafc', fontWeight: 600 }}>
+                          {rematchOfferedByUsername || 'Opponent'} offered a rematch!
+                        </span>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button
+                            className="btn btn-primary"
+                            data-testid="rematch-accept-btn"
+                            disabled={isRematchLoading}
+                            onClick={() => handleRespondRematch(true)}
+                            style={{ background: '#22c55e', borderColor: '#22c55e' }}
+                          >
+                            <Check size={16} /> Accept
+                          </button>
+                          <button
+                            className="btn btn-secondary"
+                            data-testid="rematch-decline-btn"
+                            disabled={isRematchLoading}
+                            onClick={() => handleRespondRematch(false)}
+                            style={{ color: '#ef4444' }}
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      </div>
+                    ) : rematchOfferedByMe ? (
+                      <div className="rematch-waiting-box" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#f59e0b', fontSize: '0.9rem', fontWeight: 500 }}>
+                          <RefreshCw size={16} className="spin" />
+                          <span>Rematch offered... Waiting for opponent</span>
+                        </div>
+                        <button
+                          className="btn btn-secondary"
+                          data-testid="rematch-cancel-btn"
+                          onClick={handleCancelRematch}
+                          style={{ color: '#ef4444' }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <button
+                          className="btn btn-primary"
+                          data-testid="rematch-btn"
+                          disabled={isRematchLoading}
+                          onClick={handleOfferRematch}
+                          style={{ background: '#22c55e', borderColor: '#22c55e' }}
+                        >
+                          <RefreshCw size={16} className={isRematchLoading ? 'spin' : ''} /> Rematch
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
                   <button className="btn btn-primary" onClick={downloadPGN}>
                     <Download size={16} /> Download PGN
                   </button>
-                  <button className="btn btn-secondary" onClick={() => setActiveGame(null)}>
+                  <button className="btn btn-secondary" onClick={() => {
+                    setRematchOfferedByMe(false);
+                    setRematchOfferReceived(false);
+                    setRematchOfferedByUsername(null);
+                    setIsRematchLoading(false);
+                    setActiveGame(null);
+                  }}>
                     Back to Lobby
                   </button>
                 </div>

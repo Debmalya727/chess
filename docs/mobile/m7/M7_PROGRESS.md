@@ -1,8 +1,8 @@
 # M7 — Social Polish & Post-Game Lifecycle Progress Tracker
 
 **Branch**: `mobile/phase-m6-production-hardening`
-**Current Phase**: Phase 3 — Mobile Rematch Client (COMPLETE)
-**Status**: PHASE 3 COMPLETE / VERIFIED / AWAITING USER INSTRUCTION
+**Current Phase**: Phase 4 — Web Rematch Client (COMPLETE)
+**Status**: PHASE 4 COMPLETE / VERIFIED / AWAITING USER INSTRUCTION
 **Last Updated**: 2026-09-25
 
 ---
@@ -78,7 +78,24 @@ Milestone M7 follows the successful completion of M6 Production Hardening. Its p
   - [x] Step 15 — Scope Validation (Zero server/web/packages changes)
   - [x] Step 16 — Documentation (`M7_PHASE3_MOBILE_REPORT.md`, `M7_PROGRESS.md`, `M7_FINDINGS.md`)
   - [x] Step 17 — Phase 3 Commit
-- [ ] **Phase 4 — Web Rematch Implementation** (Not Started)
+- [x] **Phase 4 — Web Rematch Implementation**
+  - [x] Step 1 — Checkpoint & Baseline Verification (`6b5bef5`)
+  - [x] Step 2 — Audit Existing Web Architecture (`OnlineMode.jsx`, `wsClient.js`)
+  - [x] Step 3 — Strict Protocol Conformance (`game:rematch`, `game:rematch:respond`, `game:rematch:cancel`, `rematch:offered`, `rematch:declined`, `rematch:cancelled`, `game:init`)
+  - [x] Step 4 — WebSocket Client Extension (`ChessWebSocketClient` methods)
+  - [x] Step 5 — Web State Integration (`rematchOfferedByMe`, `rematchOfferReceived`, `rematchOfferedByUsername`, `isRematchLoading`)
+  - [x] Step 6 — Post-Game Rematch UI in `OnlineMode.jsx` (Offer, Waiting, Incoming, Accept, Decline, Cancel)
+  - [x] Step 7 — Tournament Safety & Suppression (`!activeGame.tournamentId`)
+  - [x] Step 8 — Authoritative `game:init` Transition to Game 2
+  - [x] Step 9 — Event Filtering by `gameId`
+  - [x] Step 10 — Backend Error Handling (`REMATCH_*`, `TOURNAMENT_REMATCH_NOT_ALLOWED`)
+  - [x] Step 11 — Reconnection & Listener Hygiene
+  - [x] Step 12 — Web Rematch Test Suite (`apps/web/client/tests/rematch.test.js`)
+  - [x] Step 13 — Test Execution (16/16 tests pass)
+  - [x] Step 14 — Production Build Validation (`vite build` PASS in 3.9s)
+  - [x] Step 15 — Scope Validation (Zero server/mobile/packages modifications)
+  - [x] Step 16 — Documentation (`M7_PHASE4_WEB_REPORT.md`, `M7_PROGRESS.md`, `M7_FINDINGS.md`)
+  - [x] Step 17 — Phase 4 Commit
 - [ ] **Phase 5 — End-to-End Verification & Build Validation** (Not Started)
 
 ---
@@ -123,3 +140,33 @@ Milestone M7 follows the successful completion of M6 Production Hardening. Its p
    - Android debug APK build: PASS (`381,826,162` bytes).
    - Zero server/web/packages modifications.
 
+---
+
+## Phase 4 Summary — Web Rematch Client Complete
+
+1. **Protocol Conformance**:
+   - Reused exact centralized `WS_EVENTS` and `ERROR_CODES` from `@chess/protocol`.
+   - Extended `ChessWebSocketClient` in `apps/web/client/src/services/wsClient.js` with:
+     - `offerRematch(gameId)`: sends `game:rematch` with `{ gameId }`
+     - `respondRematch(gameId, accept)`: sends `game:rematch:respond` with `{ gameId, accept }`
+     - `cancelRematch(gameId)`: sends `game:rematch:cancel` with `{ gameId }`
+2. **State & Architecture**:
+   - Integrated rematch state into `OnlineMode.jsx`: `rematchOfferedByMe`, `rematchOfferReceived`, `rematchOfferedByUsername`, `isRematchLoading`.
+   - Managed `activeGameRef` to avoid stale closures in event listeners while maintaining stable subscription lifecycle.
+   - Filtered all incoming rematch events by `gameId === activeGame?.gameId`.
+3. **UI Integration**:
+   - Post-game banner in `OnlineMode.jsx` renders:
+     - "Rematch" button for normal finished games.
+     - "Rematch offered... Waiting for opponent" with "Cancel" button when waiting.
+     - `"[Opponent] offered a rematch!"` prompt with "Accept" and "Decline" buttons upon incoming offer.
+     - Suppresses all rematch controls when `activeGame.tournamentId` is present.
+     - Preserves existing "Download PGN" and "Back to Lobby" functionality.
+4. **Game:Init Transition**:
+   - Authoritative `game:init` re-used to enter Game 2:
+     - Applies server-assigned `gameId`, `roomCode`, swapped colors, FEN, and clocks.
+     - Completely resets all rematch state (`rematchOfferedByMe = false`, `rematchOfferReceived = false`, etc.).
+     - Transitions state back to `'ACTIVE'` so game board updates cleanly.
+5. **Testing & Build Validation**:
+   - 16/16 web rematch tests passed (`apps/web/client/tests/rematch.test.js`).
+   - Production bundle built cleanly with Vite in 3.9s.
+   - Zero modifications to backend, mobile, or protocol code.

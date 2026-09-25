@@ -204,3 +204,30 @@ During Phase 1, the architecture was locked into [M7_REMATCH_CONTRACT.md](file:/
    - `flutter analyze --no-pub`: 0 issues found.
    - Android debug APK build: PASS (`381,826,162` bytes).
 
+---
+
+## 10. Phase 4 Web Rematch Client Findings & Verification
+
+1. **Protocol Integration**:
+   - Web client reuses exact event names and schemas from `@chess/protocol`:
+     - Client -> Server: `game:rematch`, `game:rematch:respond`, `game:rematch:cancel`
+     - Server -> Client: `rematch:offered`, `rematch:declined`, `rematch:cancelled`, `game:init`
+   - Added clean methods to `ChessWebSocketClient` (`offerRematch`, `respondRematch`, `cancelRematch`).
+
+2. **React Closure Hygiene with WebSocket Listeners**:
+   - WebSocket event listeners in `OnlineMode.jsx` are bound once on component mount.
+   - To prevent stale closures over `activeGame` when socket events arrive, an `activeGameRef` (`useRef(activeGame)`) was introduced.
+   - This ensures event filtering by `gameId === activeGame?.gameId` always evaluates against the latest game state without requiring unbinding and rebinding listeners on every state update.
+
+3. **Vite Windows Junction Resolution**:
+   - In environments where the project directory is a Windows directory junction (e.g. `d:\Projects\Chess` -> `D:\Projects\Done\Chess`), Vite's HTML build plugin previously computed `../../../../Done/Chess/apps/web/client/index.html` as the asset path because `process.cwd()` differed from `fs.realpathSync`.
+   - Explicitly configuring `root: path.resolve(__dirname)` in `vite.config.js` aligns Rollup's root resolution with the module's realpath, enabling clean production builds.
+
+4. **Tournament Suppression Invariant**:
+   - Rematch controls are suppressed completely whenever `activeGame.tournamentId` is truthy.
+   - User actions are guarded both at the UI layer (omitting buttons) and at the handler layer (`if (activeGame.tournamentId) return`).
+
+5. **Test & Build Verification**:
+   - 16/16 web rematch unit and integration tests passing (`apps/web/client/tests/rematch.test.js`).
+   - Production Vite bundle builds cleanly in 3.9s.
+   - Zero changes to backend or mobile implementation files.

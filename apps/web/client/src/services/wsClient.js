@@ -119,6 +119,18 @@ export class ChessWebSocketClient {
     this.send(WS_EVENTS.GAME_RESIGN, { gameId });
   }
 
+  offerRematch(gameId) {
+    this.send(WS_EVENTS.GAME_REMATCH, { gameId });
+  }
+
+  respondRematch(gameId, accept) {
+    this.send(WS_EVENTS.REMATCH_RESPOND, { gameId, accept });
+  }
+
+  cancelRematch(gameId) {
+    this.send(WS_EVENTS.REMATCH_CANCEL, { gameId });
+  }
+
 
   on(event, callback) {
     if (!this.listeners.has(event)) {
