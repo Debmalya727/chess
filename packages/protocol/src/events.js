@@ -10,6 +10,8 @@ export const WS_EVENTS = {
   DRAW_RESPOND: 'draw:respond',
   GAME_RESIGN: 'game:resign',
   GAME_REMATCH: 'game:rematch',
+  REMATCH_RESPOND: 'game:rematch:respond',
+  REMATCH_CANCEL: 'game:rematch:cancel',
 
   // Server -> Client
   GAME_INIT: 'game:init',
@@ -22,6 +24,9 @@ export const WS_EVENTS = {
   QUEUE_STATUS: 'queue:status',
   QUEUE_MATCHED: 'queue:matched',
   ERROR: 'error',
+  REMATCH_OFFERED: 'rematch:offered',
+  REMATCH_DECLINED: 'rematch:declined',
+  REMATCH_CANCELLED: 'rematch:cancelled',
 
   // Phase 6C Social, Presence & Challenge Events
   PRESENCE_UPDATED: 'presence:updated',
@@ -86,5 +91,13 @@ export const ERROR_CODES = {
   INVALID_TOURNAMENT_STATE: 'INVALID_TOURNAMENT_STATE',
   INSUFFICIENT_PLAYERS: 'INSUFFICIENT_PLAYERS',
   ROUND_IN_PROGRESS: 'ROUND_IN_PROGRESS',
-  PAIRING_ERROR: 'PAIRING_ERROR'
+  PAIRING_ERROR: 'PAIRING_ERROR',
+
+  // Phase 7 Rematch Error Codes
+  GAME_NOT_FINISHED: 'GAME_NOT_FINISHED',
+  TOURNAMENT_REMATCH_NOT_ALLOWED: 'TOURNAMENT_REMATCH_NOT_ALLOWED',
+  REMATCH_ALREADY_PENDING: 'REMATCH_ALREADY_PENDING',
+  REMATCH_ALREADY_RESOLVED: 'REMATCH_ALREADY_RESOLVED',
+  REMATCH_NOT_FOUND: 'REMATCH_NOT_FOUND',
+  REMATCH_EXPIRED: 'REMATCH_EXPIRED'
 };

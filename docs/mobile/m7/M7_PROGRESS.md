@@ -42,26 +42,43 @@ Milestone M7 follows the successful completion of M6 Production Hardening. Its p
   - [x] Step 11 — Comprehensive Test Matrix
   - [x] Step 12 — Write Design Document (`M7_REMATCH_CONTRACT.md`)
   - [x] Step 13 — Zero Source Implementation Verification
-  - [x] Step 14 — Phase 1 Documentation Commit
-- [ ] **Phase 2 — Rematch Implementation** (Pending User Review)
-- [ ] **Phase 3 — Testing & Verification** (Not Started)
-- [ ] **Phase 4 — Packaging & Build Validation** (Not Started)
+  - [x] Step 14 — Phase 1 Documentation Commit (`2c0a4a3`)
+- [x] **Phase 2 — Protocol + Backend Rematch Implementation**
+  - [x] Step 1 — Checkpoint & Baseline Verification
+  - [x] Step 2 — Audit Existing Server Creation Flow
+  - [x] Step 3 — Protocol Implementation (`packages/protocol/src/events.js`, `schemas.js`, `tests/protocol.test.js`)
+  - [x] Step 4 — Backend Rematch Handler (`apps/server/src/websocket/handlers/rematch.js`)
+  - [x] Step 5 — Rematch Offer State & 30s Expiry (`RematchService`)
+  - [x] Step 6 — Concurrency & Idempotency Locking (Single-Game Invariant)
+  - [x] Step 7 — New Game Creation with Deterministic Color Inversion
+  - [x] Step 8 — Rating Integration (Zero direct rating mutation)
+  - [x] Step 9 — Tournament Safety Enforcement (`TOURNAMENT_REMATCH_NOT_ALLOWED`)
+  - [x] Step 10 — Active Game Safety Enforcement (`PLAYER_ALREADY_IN_GAME`)
+  - [x] Step 11 — Disconnect Hook & Timeout Cleanup
+  - [x] Step 12 — Backend Test Suite (`rematch.test.js`, `rematchRouter.test.js`)
+  - [x] Step 13 — Targeted & Full Unit Test Execution (8 protocol tests, 26 rematch tests, 78 server unit tests passing)
+  - [x] Step 14 — Static & Scope Validation (Zero mobile/web source changes)
+  - [x] Step 15 — Documentation (`M7_PROGRESS.md`, `M7_FINDINGS.md`, `M7_PHASE2_BACKEND_REPORT.md`)
+  - [x] Step 16 — Phase 2 Commit
+- [ ] **Phase 3 — Mobile Rematch Implementation** (Not Started)
+- [ ] **Phase 4 — Web Rematch Implementation** (Not Started)
+- [ ] **Phase 5 — End-to-End Verification & Build Validation** (Not Started)
 
 ---
 
-## Phase 1 Summary — Contract Locked
+## Phase 2 Summary — Backend & Protocol Complete
 
-1. **Protocol Specification Locked**:
-   - Client -> Server: `game:rematch`, `game:rematch:respond`, `game:rematch:cancel`
-   - Server -> Client: `rematch:offered`, `rematch:declined`, `rematch:cancelled`, `game:init`
-   - Error Codes: `GAME_NOT_FINISHED`, `TOURNAMENT_REMATCH_NOT_ALLOWED`, `REMATCH_ALREADY_PENDING`, `REMATCH_ALREADY_RESOLVED`, `REMATCH_NOT_FOUND`, `REMATCH_EXPIRED`
-2. **Deterministic Color Inversion**:
-   - Game 2 White = Game 1 Black; Game 2 Black = Game 1 White (enforced strictly by server).
-3. **Database Invariant**:
-   - Every rematch creates a brand new row in `games` with fresh `id` and unique `room_code`.
-4. **Concurrency Invariant**:
-   - "At most one rematch game may be created for a given completed game." Simultaneous requests cleanly coalesce into single mutual acceptance.
-5. **Tournament Guard**:
-   - Rematch permanently disabled in tournament games (`tournamentId != null`).
-6. **Implementation Status**:
-   - ZERO production code changes made; design and contract locked in `M7_REMATCH_CONTRACT.md`.
+1. **Protocol Package**:
+   - Added events: `REMATCH_RESPOND` (`game:rematch:respond`), `REMATCH_CANCEL` (`game:rematch:cancel`), `REMATCH_OFFERED` (`rematch:offered`), `REMATCH_DECLINED` (`rematch:declined`), `REMATCH_CANCELLED` (`rematch:cancelled`). Reused `GAME_REMATCH` and `GAME_INIT`.
+   - Added error codes: `GAME_NOT_FINISHED`, `TOURNAMENT_REMATCH_NOT_ALLOWED`, `REMATCH_ALREADY_PENDING`, `REMATCH_ALREADY_RESOLVED`, `REMATCH_NOT_FOUND`, `REMATCH_EXPIRED`.
+   - Added validators: `validateRematchPayload`, `validateRematchRespondPayload`, `validateRematchCancelPayload`.
+   - Added protocol test suite (`packages/protocol/tests/protocol.test.js` — 8 passing tests).
+2. **Backend Engine**:
+   - Implemented `RematchService` in `apps/server/src/games/rematchService.js` with concurrency locks, 30s timer lifecycle, authoritative new-game creation, deterministic color inversion, tournament restriction, active game checking, and disconnect cleanup.
+   - Implemented handlers in `apps/server/src/websocket/handlers/rematch.js` and wired routes in `router.js` and `wsServer.js`.
+   - Implemented database mapping for `rated` and `tournament_id` in `apps/server/src/db/gameRepository.js`.
+3. **Verification**:
+   - 8 protocol tests pass.
+   - 26 rematch unit & router tests pass.
+   - 78 full server unit tests pass.
+   - Zero mobile or web code modified.

@@ -140,3 +140,29 @@ During Phase 1, the architecture was locked into [M7_REMATCH_CONTRACT.md](file:/
 3. **Resolution on Ratings & Time Control**: Verbatim inheritance of `timeControl`, `rated`, and `ratingType`. Ratings updated after Game 1 are used as starting Elo for Game 2.
 4. **Resolution on Invariant**: Single-game invariant enforced via in-memory concurrency lock; simultaneous mutual requests coalesce into one acceptance.
 5. **Resolution on Tournaments**: Hard ban on rematch in tournament games (`tournamentId != null`).
+
+---
+
+## 8. Phase 2 Implementation Findings & Verification
+
+1. **Protocol Implementation**:
+   - `packages/protocol/src/events.js` updated with `WS_EVENTS` (`REMATCH_RESPOND`, `REMATCH_CANCEL`, `REMATCH_OFFERED`, `REMATCH_DECLINED`, `REMATCH_CANCELLED`) and `ERROR_CODES` (`GAME_NOT_FINISHED`, `TOURNAMENT_REMATCH_NOT_ALLOWED`, `REMATCH_ALREADY_PENDING`, `REMATCH_ALREADY_RESOLVED`, `REMATCH_NOT_FOUND`, `REMATCH_EXPIRED`).
+   - `packages/protocol/src/schemas.js` updated with payload validators (`validateRematchPayload`, `validateRematchRespondPayload`, `validateRematchCancelPayload`).
+   - `packages/protocol/tests/protocol.test.js` verified 8 unit tests passing with zero duplicate string collisions.
+
+2. **Backend Engine (`RematchService`)**:
+   - Created in `apps/server/src/games/rematchService.js` with full state machine, concurrency locks, 30s timeout timers, and disconnect hooks.
+   - Handlers created in `apps/server/src/websocket/handlers/rematch.js` and wired into `router.js` with `await` semantics.
+   - Socket close listener in `wsServer.js` hooked with `globalRematchService.handleUserDisconnected` to cancel pending offers when a player drops.
+   - Database schema mapping in `apps/server/src/db/gameRepository.js` updated to preserve `rated` and `tournamentId` during game creation and fetching.
+
+3. **Concurrency & Invariant Confirmation**:
+   - Simultaneous mutual requests (`requestRematch` from both players) coalesce cleanly into single game creation.
+   - Parallel race between acceptances tested and proven to result in exactly ONE game creation with subsequent requests receiving `REMATCH_ALREADY_RESOLVED`.
+   - Test pollution prevention: `t.beforeEach` in `rematch.test.js` isolates active rooms between tests so `getActiveGameForUser` functions deterministically.
+
+4. **Test Verification**:
+   - Protocol tests: 8 pass, 0 fail.
+   - Rematch unit tests (`rematch.test.js`): 20 pass, 0 fail.
+   - Rematch router tests (`rematchRouter.test.js`): 4 pass, 0 fail.
+   - Full server unit test suite: 16 suites, 78 tests pass, 0 fail.

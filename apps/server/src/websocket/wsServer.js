@@ -44,6 +44,9 @@ export async function setupWebSocketServer(fastify) {
         import('../presence/presenceService.js').then(({ globalPresenceService }) => {
           globalPresenceService.handleUserDisconnected(clientState.user.id, socket.id);
         }).catch(() => {});
+        import('../games/rematchService.js').then(({ globalRematchService }) => {
+          globalRematchService.handleUserDisconnected(clientState.user.id);
+        }).catch(() => {});
       }
 
       if (clientState.currentRoomId && clientState.user) {

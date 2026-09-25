@@ -3,7 +3,10 @@ import {
   validateMoveSubmitPayload,
   validateRoomCreatePayload,
   validateRoomJoinPayload,
-  validateDrawRespondPayload
+  validateDrawRespondPayload,
+  validateRematchPayload,
+  validateRematchRespondPayload,
+  validateRematchCancelPayload
 } from '@chess/protocol';
 import { globalWsRateLimiter } from './rateLimiter.js';
 import { handleAuthToken } from './handlers/auth.js';
@@ -13,6 +16,7 @@ import { handleDrawOffer, handleDrawRespond } from './handlers/draw.js';
 import { handleGameResign } from './handlers/game.js';
 import { handleQueueJoin, handleQueueLeave, handleQueueStatus } from './handlers/matchmaking.js';
 import { handleTournamentJoin, handleTournamentLeave } from './handlers/tournament.js';
+import { handleGameRematch, handleRematchRespond, handleRematchCancel } from './handlers/rematch.js';
 
 const MAX_WS_PAYLOAD_BYTES = 64 * 1024; // 64 KB
 
@@ -122,6 +126,27 @@ export async function routeWsMessage(socket, rawMessage, clientState) {
     case WS_EVENTS.GAME_RESIGN:
       handleGameResign(socket, payload, clientState, sendResponse, sendError);
       break;
+
+    case WS_EVENTS.GAME_REMATCH: {
+      const v = validateRematchPayload(payload);
+      if (!v.isValid) return sendError(v.error, v.message);
+      await handleGameRematch(socket, v.sanitized, clientState, sendResponse, sendError);
+      break;
+    }
+
+    case WS_EVENTS.REMATCH_RESPOND: {
+      const v = validateRematchRespondPayload(payload);
+      if (!v.isValid) return sendError(v.error, v.message);
+      await handleRematchRespond(socket, v.sanitized, clientState, sendResponse, sendError);
+      break;
+    }
+
+    case WS_EVENTS.REMATCH_CANCEL: {
+      const v = validateRematchCancelPayload(payload);
+      if (!v.isValid) return sendError(v.error, v.message);
+      await handleRematchCancel(socket, v.sanitized, clientState, sendResponse, sendError);
+      break;
+    }
 
     case WS_EVENTS.TOURNAMENT_JOIN:
       handleTournamentJoin(socket, payload, clientState, sendResponse, sendError);

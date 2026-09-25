@@ -4,5 +4,8 @@ export {
   validateRoomCreatePayload,
   validateRoomJoinPayload,
   validateDrawRespondPayload,
-  validateQueueJoinPayload
+  validateQueueJoinPayload,
+  validateRematchPayload,
+  validateRematchRespondPayload,
+  validateRematchCancelPayload
 } from './schemas.js';

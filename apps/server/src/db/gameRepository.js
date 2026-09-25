@@ -7,8 +7,8 @@ export async function createGame(gameData) {
   if (isUsingMysql()) {
     const pool = getPool();
     await pool.query(
-      `INSERT INTO games (id, room_code, white_player_id, black_player_id, mode, status, time_control, initial_fen)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO games (id, room_code, white_player_id, black_player_id, mode, status, time_control, initial_fen, rated, tournament_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         gameData.id,
         gameData.roomCode,
@@ -17,7 +17,9 @@ export async function createGame(gameData) {
         gameData.mode || 'ONLINE',
         gameData.status || 'WAITING',
         gameData.timeControl || '10+0',
-        gameData.initialFen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+        gameData.initialFen || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+        gameData.rated !== undefined ? Boolean(gameData.rated) : true,
+        gameData.tournamentId || null
       ]
     );
     return gameData;
@@ -314,6 +316,8 @@ function mapGameRow(r) {
     pgn: r.pgn,
     result: r.result,
     termination: r.termination,
+    rated: r.rated !== undefined ? Boolean(r.rated) : true,
+    tournamentId: r.tournament_id || null,
     createdAt: r.created_at,
     startedAt: r.started_at,
     endedAt: r.ended_at

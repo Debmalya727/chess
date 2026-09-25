@@ -80,3 +80,30 @@ export function validateDrawRespondPayload(payload = {}) {
   }
   return { isValid: true, sanitized: { gameId, accept } };
 }
+
+export function validateRematchPayload(payload = {}) {
+  const { gameId } = payload;
+  if (!gameId || typeof gameId !== 'string') {
+    return { isValid: false, error: 'INVALID_INPUT', message: 'Game ID is required.' };
+  }
+  return { isValid: true, sanitized: { gameId } };
+}
+
+export function validateRematchRespondPayload(payload = {}) {
+  const { gameId, accept } = payload;
+  if (!gameId || typeof gameId !== 'string') {
+    return { isValid: false, error: 'INVALID_INPUT', message: 'Game ID is required.' };
+  }
+  if (typeof accept !== 'boolean') {
+    return { isValid: false, error: 'INVALID_INPUT', message: 'Accept must be a boolean.' };
+  }
+  return { isValid: true, sanitized: { gameId, accept } };
+}
+
+export function validateRematchCancelPayload(payload = {}) {
+  const { gameId } = payload;
+  if (!gameId || typeof gameId !== 'string') {
+    return { isValid: false, error: 'INVALID_INPUT', message: 'Game ID is required.' };
+  }
+  return { isValid: true, sanitized: { gameId } };
+}
