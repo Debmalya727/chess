@@ -302,6 +302,30 @@ During Phase 1, the architecture was locked into [M7_REMATCH_CONTRACT.md](file:/
    - Endpoint: `wss://chess-api-hszp.onrender.com/ws`.
    - Authentication: Emitted `auth:token` with JWT for ephemeral registered user; received `auth:success`.
    - Protocol Probe: Emitted `{"event":"game:rematch","payload":{"gameId":"probe-dummy-game-id"}}`.
-   - Before State: `{"code":"UNKNOWN_EVENT","message":"Event 'game:rematch' is not supported."}`.
-   - After State: `{"code":"GAME_NOT_FOUND","message":"Game not found."}`.
    - Conclusion: The M7 rematch router is deployed and operational on Render production.
+
+---
+
+## Phase 6D Findings: Real Production Rematch Smoke Test
+
+1. **Production Health & Session Isolation**:
+   - Both `/health` and `/readiness` responded HTTP 200 OK.
+   - Independent WebSocket sessions for `PlayerA` (`smoke_playera_1790352575492`, `usr_1790352581042_396u7y`) and `PlayerB` (`smoke_playerb_1790352576706`, `usr_1790352582297_rt9fwr`) established with zero shared client state.
+
+2. **Game 1 Lifecycle**:
+   - Private room `ROOM_FEC015` created with 1+0 blitz control.
+   - PlayerA assigned White, PlayerB assigned Black.
+   - Moves 1. e4 e5 validated and applied with stateVersion progression (v1 -> v2 -> v3).
+   - Resignation by Black concluded Game 1 with authoritative `game:ended` (`result: 1-0`, `termination: resignation`).
+
+3. **Rematch Protocol & Invariant Enforcement on Production**:
+   - **Offer & Idempotency**: PlayerA emitted `game:rematch`; PlayerB received `rematch:offered` with future `expiresAt: 1790352623964`. Resending the offer returned `game:rematch:confirm` with `alreadyPending: true` without duplicating state.
+   - **Acceptance & Game 2 Creation**: PlayerB emitted `game:rematch:respond` with `accept: true`. Authoritative Game 2 created (`ROOM_C7FC8D`, `game_1790352596879_0e2dbc58`), ensuring distinct game ID and room code.
+   - **Deterministic Color Inversion**: Game 1 White (PlayerA) became Game 2 Black (`color: 'b'`). Game 1 Black (PlayerB) became Game 2 White (`color: 'w'`).
+   - **Move Synchronization**: Played 1. d4 d5 in Game 2. Moves accepted and synced across both sessions without engine intervention.
+   - **Rematch Decline**: Game 2 concluded via resignation. PlayerB offered rematch; PlayerA declined (`accept: false`). Both sessions received `rematch:declined`; no Game 3 was spawned.
+   - **Rematch Cancel**: In Game 3 (`game_1790352606026_1939a310`), PlayerA offered rematch and subsequently cancelled it via `game:rematch:cancel`. Both sessions received `rematch:cancelled` with `reason: 'cancelled_by_player'`.
+   - **Authoritative 30s Server Timeout**: In Game 4 (`game_1790352611053_b8b272f4`), PlayerA offered rematch at `16:10:08Z`. Without any player response, the server TTL timer fired after 30.98s, emitting `rematch:cancelled` with `reason: 'timeout'` to both players.
+   - **Session Reconnect**: PlayerA disconnected, reconnected, and re-authenticated via `auth:token` -> `auth:success` with rating intact (1469).
+   - **Fair-Play Isolation**: Verified zero Stockfish engine dependencies across the production rematch and online game paths.
+   - **Vercel Web Frontend**: Inspected `https://client-psi-five-25.vercel.app`. The client connects to production backend (`CONNECTED`) and bundles all M7 client methods (`offerRematch`, `respondRematch`, `cancelRematch`).

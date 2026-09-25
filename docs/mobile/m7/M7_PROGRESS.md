@@ -233,3 +233,30 @@ Milestone M7 follows the successful completion of M6 Production Hardening. Its p
    - After: `game:rematch` -> `GAME_NOT_FOUND` (`"Game not found."`), confirming M7 rematch router is active on production.
 5. **Phase 6C Status**:
    - **READY FOR PRODUCTION SMOKE TEST**
+
+---
+
+## Phase 6D: Real Production Rematch Smoke Test (COMPLETE)
+
+1. **Environment & Connection**:
+   - Backend: `https://chess-api-hszp.onrender.com`
+   - WebSocket: `wss://chess-api-hszp.onrender.com/ws`
+   - Web Client: `https://client-psi-five-25.vercel.app`
+   - Deployed Commit: `82b59a1`
+   - Health & Readiness: Both HTTP 200 OK
+   - Sessions: Two independent authenticated WebSocket clients (`PlayerA` and `PlayerB`)
+2. **Production Scenarios Executed**:
+   - Game 1 Creation: Room `ROOM_FEC015`, Game `game_1790352586199_4ec7d060`, PlayerA White, PlayerB Black (PASS)
+   - Game 1 Move Validation & Resignation: 1. e4 e5, resignation by Black, result 1-0 (PASS)
+   - Rematch Offer & Idempotency: PlayerA offered, PlayerB received `rematch:offered` with future `expiresAt`; duplicate offer returned `alreadyPending: true` (PASS)
+   - Rematch Acceptance & Game 2 Creation: PlayerB accepted, Game 2 created (`ROOM_C7FC8D`, `game_1790352596879_0e2dbc58`), unique IDs (PASS)
+   - Color Inversion: Deterministic swap verified (PlayerA Black, PlayerB White) (PASS)
+   - Game 2 Move Validation: 1. d4 d5 accepted with correct SAN, FEN, clocks, and version increments (PASS)
+   - Rematch Decline: PlayerB offered for Game 2, PlayerA responded `accept: false`, `rematch:declined` received, no Game 3 (PASS)
+   - Rematch Cancel: Game 3 created/resigned, PlayerA offered, then cancelled via `game:rematch:cancel`, `rematch:cancelled` with `cancelled_by_player` (PASS)
+   - Real 30-Second Server TTL Timeout: Game 4 created/resigned, PlayerA offered, after 30.98s both received `rematch:cancelled` with `timeout` (PASS)
+   - Reconnect: PlayerA disconnected and reconnected, re-authenticated with preserved session & rating (PASS)
+   - Stockfish Isolation & DB Integrity: Verified online rematch contains zero Stockfish dependencies; DB immutability preserved (PASS)
+   - Production Web UI: Verified `client-psi-five-25.vercel.app` is live and connected, bundle contains all M7 client handlers (PASS)
+3. **M7 Final Status**:
+   - **COMPLETE WITH LIMITATIONS**

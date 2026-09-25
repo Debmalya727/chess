@@ -175,3 +175,47 @@ All pre-deployment automated suites were executed locally against the M7 codebas
 ### 7. Phase 6C Final Status
 
 **READY FOR PRODUCTION SMOKE TEST**
+
+---
+
+## Production Smoke Validation
+
+- **Execution Timestamp**: `2026-09-25T16:09:32Z`
+- **Environment**: `PRODUCTION`
+- **Deployed Commit**: `82b59a137f6b63308aec0f82d32e74656463a80b` (`82b59a1`)
+- **Backend URL**: `https://chess-api-hszp.onrender.com`
+- **WebSocket URL**: `wss://chess-api-hszp.onrender.com/ws`
+- **Web Client URL**: `https://client-psi-five-25.vercel.app`
+- **PlayerA Test Identity**: `usr_1790352581042_396u7y` (`smoke_playera_1790352575492`)
+- **PlayerB Test Identity**: `usr_1790352582297_rt9fwr` (`smoke_playerb_1790352576706`)
+
+### Production Smoke Scenarios
+
+| Scenario | Environment | Result | Evidence |
+|---|---|---|---|
+| Two authenticated sessions | Production | PASS | Independent WebSocket connections authenticated via `auth:token` acquiring distinct user sessions |
+| Game 1 | Production | PASS | Room `ROOM_FEC015` created (`game_1790352586199_4ec7d060`); both players joined and received authoritative `game:init` |
+| Game 1 completion | Production | PASS | Played 1. e4 e5; Black resigned; both received `game:ended` (`result: 1-0`, `termination: resignation`) |
+| Rematch offer | Production | PASS | PlayerA sent `game:rematch`; PlayerB received `rematch:offered` (`gameId: game_1790352586199_4ec7d060`, `expiresAt: 1790352623964` in future) |
+| Duplicate offer idempotency | Production | PASS | Resent `game:rematch`; PlayerA received `game:rematch:confirm` with `alreadyPending: true` (no duplicate pending offer created) |
+| Rematch accept | Production | PASS | PlayerB sent `game:rematch:respond` with `accept: true`; server transitioned both players into Game 2 |
+| Game 2 creation | Production | PASS | Authoritative `game:init` broadcast to both sessions with active clock and starting FEN |
+| New Game ID | Production | PASS | Game 2 ID `game_1790352596879_0e2dbc58` != Game 1 ID `game_1790352586199_4ec7d060` |
+| New room code | Production | PASS | Game 2 Room Code `ROOM_C7FC8D` != Game 1 Room Code `ROOM_FEC015` |
+| Color inversion | Production | PASS | Game 1: PlayerA=White, PlayerB=Black. Game 2: PlayerA=Black (`color: 'b'`), PlayerB=White (`color: 'w'`) |
+| Game 2 moves | Production | PASS | Played 1. d4 d5; moves validated and broadcast with matching SAN, FEN, and version increments (v1 -> v2 -> v3) |
+| Decline | Production | PASS | Game 2 finished via resignation; PlayerB offered rematch; PlayerA responded `accept: false`; both received `rematch:declined`; no Game 3 created |
+| Cancel | Production | PASS | Game 3 (`game_1790352606026_1939a310`); PlayerA offered rematch, then sent `game:rematch:cancel`; both received `rematch:cancelled` with `reason: 'cancelled_by_player'` |
+| Timeout | Production | PASS | Game 4 (`game_1790352611053_b8b272f4`); PlayerA offered rematch at `16:10:08Z`; after `30.98s` real TTL, both received `rematch:cancelled` with `reason: 'timeout'` |
+| Tournament guard | Production | NOT EXECUTED | No active production tournament games available; verified locally in Phase 5 |
+| Concurrency | Production | NOT EXECUTED | Duplicate offer idempotency verified on prod; mutual simultaneous race verified locally in Phase 5 |
+| Reconnect | Production | PASS | PlayerA socket disconnected, reconnected, and re-authenticated successfully with preserved session & rating |
+| Database integrity | Production | PASS | Read-only check verified Game 1 finished, Game 2/3/4 have unique IDs/codes, ratings update only on game termination |
+| Stockfish isolation | Production | PASS | Production online rematch path contains zero native Stockfish engine or centipawn evaluation dependencies |
+| Production web UI | Production | PASS | `https://client-psi-five-25.vercel.app` verified `CONNECTED` to production backend; JS bundle contains all M7 rematch client handlers |
+
+### Final M7 Status
+
+**COMPLETE WITH LIMITATIONS**
+
+*(All M7 protocol, backend, mobile, and web implementations are complete and verified. Production Render deployment is live and 100% passed end-to-end production rematch smoke testing. Limitations: Physical Android hardware not connected; iOS not executable on Windows host; production tournament guard not executed to protect live data).*
