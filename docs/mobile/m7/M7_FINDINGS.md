@@ -231,3 +231,28 @@ During Phase 1, the architecture was locked into [M7_REMATCH_CONTRACT.md](file:/
    - 16/16 web rematch unit and integration tests passing (`apps/web/client/tests/rematch.test.js`).
    - Production Vite bundle builds cleanly in 3.9s.
    - Zero changes to backend or mobile implementation files.
+
+---
+
+## Phase 5 Findings: Full Integration & Live Rematch Validation
+
+1. **Remote Cloud Production Server State**:
+   - The production server at `https://chess-api-hszp.onrender.com` is healthy and responsive (DB: ok, Redis: ok).
+   - Probing the WebSocket endpoint with `game:rematch` returned `{"code": "UNKNOWN_EVENT"}`.
+   - This confirmed that the remote cloud environment is running the pre-M7 deployment (`main` branch).
+   - Per Phase 5 instructions, deployment configuration was not altered and cloud validation of rematch was properly documented as `NOT EXECUTED ON REMOTE HOST`.
+
+2. **Live End-to-End WebSocket Protocol Validation**:
+   - All rematch protocol flows were executed live against an active Fastify M7 server instance on port 8088/8089 with two distinct authenticated sessions (`PlayerA` and `PlayerB`).
+   - Full lifecycle verified: Game 1 creation, legal move play (1. e4 e5), resignation, rematch offer (`rematch:offered`), duplicate click idempotency (`alreadyPending: true`), rematch acceptance (`game:rematch:respond`), Game 2 creation (`game:init`), deterministic color inversion (`Game 1 White -> Game 2 Black`), Game 2 legal moves (1. d4 d5 with version increments), rematch decline, rematch cancel (`cancelled_by_player`), real 30.00s timeout expiration (`timeout`), tournament rematch rejection (`TOURNAMENT_REMATCH_NOT_ALLOWED`), concurrency race mutex (coalesced into single game), reconnect safety, fair-play Stockfish zero-tolerance isolation, and DB/state integrity.
+
+3. **Authoritative 30-Second Timeout Verification**:
+   - The pending offer timeout was verified without mocking or artificial acceleration:
+   - Offer sent: `2026-09-25T11:26:07.849Z`
+   - Cancellation received: `2026-09-25T11:26:38.539Z` (`reason: 'timeout'`)
+   - Duration: 30.69 seconds (within normal timer tick resolution).
+
+4. **Hardware Environment Reality**:
+   - `adb devices` returned 0 devices. No physical Android device was connected to the host during execution.
+   - Host is Windows 11 Enterprise; macOS/iOS build toolchain is not present.
+   - These limitations are formally recorded in the final classification.

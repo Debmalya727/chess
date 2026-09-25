@@ -170,3 +170,23 @@ Milestone M7 follows the successful completion of M6 Production Hardening. Its p
    - 16/16 web rematch tests passed (`apps/web/client/tests/rematch.test.js`).
    - Production bundle built cleanly with Vite in 3.9s.
    - Zero modifications to backend, mobile, or protocol code.
+
+---
+
+## Phase 5: Full Integration & Live Rematch Validation (COMPLETE WITH LIMITATIONS)
+
+1. **Automated Baseline Verification**:
+   - Protocol: 8/8 passed (`packages/protocol`)
+   - Backend: 78/78 passed (`apps/server`)
+   - Web: 16/16 passed (`apps/web/client`)
+   - Mobile: 304/304 passed (`apps/mobile`)
+2. **Live Remote Production Health**:
+   - Remote endpoint (`https://chess-api-hszp.onrender.com`): `/health` (status: ok) and `/readiness` (status: ready) verified live.
+   - Remote WebSocket audit identified that cloud Render environment is running pre-M7 `main` code (`UNKNOWN_EVENT` for `game:rematch`), leaving cloud rematch testing as `NOT EXECUTED ON REMOTE HOST` (deployment preserved without unauthorized changes).
+3. **Live End-to-End Rematch Execution**:
+   - Ran live Fastify M7 server instance on port 8088/8089 with two authenticated sessions (`PlayerA` and `PlayerB`).
+   - Validated: Game 1 creation, legal move play (1. e4 e5), resignation, rematch offer, duplicate offer idempotency (`alreadyPending: true`), rematch accept, authoritative Game 2 `game:init`, color inversion, Game 2 legal moves (1. d4 d5, state versions v1 -> v2 -> v3), rematch decline (no Game 3), rematch cancel (`cancelled_by_player`), real 30.00s timeout expiration (`timeout`), tournament rematch suppression (`TOURNAMENT_REMATCH_NOT_ALLOWED`), concurrency race mutex (coalesced into single game), reconnect safety, fair-play Stockfish zero-tolerance isolation, and DB/state integrity.
+4. **Scope & Code Integrity**:
+   - 0 source code changes required across backend, mobile, web, and protocol.
+5. **Classification**:
+   - `COMPLETE WITH LIMITATIONS` (Limitations: Remote cloud deployment pending; no physical Android device attached; iOS not executable on Windows).
