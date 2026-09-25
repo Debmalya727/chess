@@ -193,7 +193,7 @@ Milestone M7 follows the successful completion of M6 Production Hardening. Its p
 
 ---
 
-## Phase 6: Production Deployment & Smoke Validation (BLOCKED)
+## Phase 6: Production Deployment & Smoke Validation (Historical)
 
 1. **Pre-Deployment Regression Baseline**:
    - Protocol: 8/8 passed (`packages/protocol`)
@@ -210,7 +210,26 @@ Milestone M7 follows the successful completion of M6 Production Hardening. Its p
    - WebSocket authenticated probe to `wss://chess-api-hszp.onrender.com/ws`: Emitted `game:rematch`, received `{"code":"UNKNOWN_EVENT","message":"Event 'game:rematch' is not supported."}` confirming the cloud instance runs pre-M7 `main` code.
 4. **Deployment Status & Block Reason**:
    - Render service `chess-api` tracks GitHub repository `https://github.com/Debmalya727/chess.git` branch `main` (`autoDeploy: false`).
-   - Pushing the local `mobile/phase-m6-production-hardening` branch containing M7 to `origin/main` requires GitHub credentials / OAuth which requires interactive promotion.
-   - User confirmed concluding Phase 6 as `BLOCKED` with full pre-deployment audit, baseline verification, and before-state evidence.
-5. **Phase 6 Classification**:
-   - **BLOCKED**
+   - Pushing the local `mobile/phase-m6-production-hardening` branch containing M7 to `origin/main` required GitHub credentials / OAuth which was subsequently completed in Phase 6B.
+
+---
+
+## Phase 6C: Deploy GitHub Main to Render (COMPLETE)
+
+1. **GitHub Main Promotion**:
+   - Verified `HEAD == origin/main == 82b59a137f6b63308aec0f82d32e74656463a80b` (`82b59a1`).
+2. **Render Cloud Deployment**:
+   - Service: `chess-api` (`https://chess-api-hszp.onrender.com`).
+   - Deploy ID: `dep-dar8v8vf3r2c73bj1v60`.
+   - Source Commit: `82b59a1`.
+   - Status: `Deploy succeeded | Live`.
+   - Duration: `1m 24s`.
+3. **Production Verification**:
+   - `/health`: HTTP 200 OK (`{"status":"ok","database":"ok","redis":"ok","redisMode":"redis"}`).
+   - `/readiness`: HTTP 200 OK (`{"status":"ready","database":"connected","redis":"ok","redisRequired":true}`).
+   - WebSocket: `wss://chess-api-hszp.onrender.com/ws` connected & authenticated cleanly (`auth:token` -> `auth:success`).
+4. **M7 Protocol Probe**:
+   - Before: `game:rematch` -> `UNKNOWN_EVENT` (`"Event 'game:rematch' is not supported."`).
+   - After: `game:rematch` -> `GAME_NOT_FOUND` (`"Game not found."`), confirming M7 rematch router is active on production.
+5. **Phase 6C Status**:
+   - **READY FOR PRODUCTION SMOKE TEST**

@@ -274,8 +274,34 @@ During Phase 1, the architecture was locked into [M7_REMATCH_CONTRACT.md](file:/
      `{"event":"error","payload":{"code":"UNKNOWN_EVENT","message":"Event 'game:rematch' is not supported."},"timestamp":1790337443626}`.
    - This established the definitive BEFORE state on production.
 
-3. **Production Deployment Block Barrier**:
+3. **Production Deployment Block Barrier (Resolved in Phase 6B/6C)**:
    - The production Render service `chess-api` tracks branch `main` with `autoDeploy: false`.
-   - The remote GitHub repository (`https://github.com/Debmalya727/chess.git`) branch `origin/main` remains at commit `629ac6e`.
-   - Pushing the local branch `mobile/phase-m6-production-hardening` (HEAD `e830aa0`) to `origin/main` requires interactive GitHub authentication or a personal access token.
-   - In accordance with user selection, Phase 6 was concluded as `BLOCKED` with full pre-deployment regression, build validation, and before-state evidence documented.
+   - The remote GitHub repository (`https://github.com/Debmalya727/chess.git`) branch `origin/main` was promoted to `82b59a1` in Phase 6B.
+
+---
+
+## Phase 6C Findings: Render Deployment & Protocol Recognition
+
+1. **GitHub Main Promotion**:
+   - `origin/main` promoted to `82b59a137f6b63308aec0f82d32e74656463a80b` (`82b59a1 docs(m7): record production deployment validation`).
+   - Verified `HEAD == origin/main == 82b59a1`.
+
+2. **Render Cloud Deployment Execution**:
+   - Service: `chess-api` (`https://chess-api-hszp.onrender.com`).
+   - Deploy ID: `dep-dar8v8vf3r2c73bj1v60`.
+   - Source Commit: `82b59a1`.
+   - Status: `Deploy succeeded | Live`.
+   - Duration: `1m 24s`.
+   - Startup Logs: Fastify startup running `node apps/server/src/index.js`, TiDB pool initialized, Redis client ready.
+
+3. **Production Health & Readiness Verification**:
+   - `GET /health`: HTTP 200 OK (`{"status":"ok","database":"ok","redis":"ok","redisMode":"redis"}`).
+   - `GET /readiness`: HTTP 200 OK (`{"status":"ready","database":"connected","redis":"ok","redisRequired":true}`).
+
+4. **Production WebSocket Authentication & Protocol Recognition**:
+   - Endpoint: `wss://chess-api-hszp.onrender.com/ws`.
+   - Authentication: Emitted `auth:token` with JWT for ephemeral registered user; received `auth:success`.
+   - Protocol Probe: Emitted `{"event":"game:rematch","payload":{"gameId":"probe-dummy-game-id"}}`.
+   - Before State: `{"code":"UNKNOWN_EVENT","message":"Event 'game:rematch' is not supported."}`.
+   - After State: `{"code":"GAME_NOT_FOUND","message":"Game not found."}`.
+   - Conclusion: The M7 rematch router is deployed and operational on Render production.
