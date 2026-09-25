@@ -1,8 +1,8 @@
 # M7 — Social Polish & Post-Game Lifecycle Progress Tracker
 
 **Branch**: `mobile/phase-m6-production-hardening`
-**Current Phase**: Phase 1 — Rematch Implementation Contract & Design (COMPLETE)
-**Status**: DESIGN COMPLETE / CONTRACT LOCKED / AWAITING USER INSTRUCTION
+**Current Phase**: Phase 3 — Mobile Rematch Client (COMPLETE)
+**Status**: PHASE 3 COMPLETE / VERIFIED / AWAITING USER INSTRUCTION
 **Last Updated**: 2026-09-25
 
 ---
@@ -60,7 +60,24 @@ Milestone M7 follows the successful completion of M6 Production Hardening. Its p
   - [x] Step 14 — Static & Scope Validation (Zero mobile/web source changes)
   - [x] Step 15 — Documentation (`M7_PROGRESS.md`, `M7_FINDINGS.md`, `M7_PHASE2_BACKEND_REPORT.md`)
   - [x] Step 16 — Phase 2 Commit
-- [ ] **Phase 3 — Mobile Rematch Implementation** (Not Started)
+- [x] **Phase 3 — Mobile Rematch Implementation**
+  - [x] Step 1 — Checkpoint & Baseline Verification (`d4433d2`)
+  - [x] Step 2 — Audit Existing Mobile Architecture
+  - [x] Step 3 — Protocol Constants (`WsEvents`, `ErrorCodes`)
+  - [x] Step 4 — Online Game State Model (`OnlineGameState`)
+  - [x] Step 5 — Online Game Notifier Actions (`offerRematch`, `respondRematch`, `cancelRematch`)
+  - [x] Step 6 — Server Event Listeners (`rematch:offered`, `rematch:declined`, `rematch:cancelled`, `error`)
+  - [x] Step 7 — Authoritative `game:init` Transition for Game 2
+  - [x] Step 8 — Game-Over UI in `OnlineGameScreen`
+  - [x] Step 9 — UX State Rules & Duplicate Action Prevention
+  - [x] Step 10 — Tournament Safety Enforcement (`isTournamentGame` suppression)
+  - [x] Step 11 — Reconnect Safety
+  - [x] Step 12 — Test Suites (`m7_rematch_mobile_test.dart`, `m7_rematch_screen_test.dart`)
+  - [x] Step 13 — Test Execution & Analysis (27 targeted tests pass, 304/304 full suite tests pass, 0 flutter analyze issues)
+  - [x] Step 14 — Android Debug Build Validation (PASS, 381.8MB APK)
+  - [x] Step 15 — Scope Validation (Zero server/web/packages changes)
+  - [x] Step 16 — Documentation (`M7_PHASE3_MOBILE_REPORT.md`, `M7_PROGRESS.md`, `M7_FINDINGS.md`)
+  - [x] Step 17 — Phase 3 Commit
 - [ ] **Phase 4 — Web Rematch Implementation** (Not Started)
 - [ ] **Phase 5 — End-to-End Verification & Build Validation** (Not Started)
 
@@ -82,3 +99,27 @@ Milestone M7 follows the successful completion of M6 Production Hardening. Its p
    - 26 rematch unit & router tests pass.
    - 78 full server unit tests pass.
    - Zero mobile or web code modified.
+
+---
+
+## Phase 3 Summary — Mobile Rematch Client Complete
+
+1. **Protocol Integration**:
+   - Added `WsEvents` constants: `rematchRespond`, `rematchCancel`, `rematchOffered`, `rematchDeclined`, `rematchCancelled` (reusing existing `gameRematch` and `gameInit`).
+   - Added `ErrorCodes`: `gameNotFinished`, `tournamentRematchNotAllowed`, `rematchAlreadyPending`, `rematchAlreadyResolved`, `rematchNotFound`, `rematchExpired`.
+2. **State & Notifier**:
+   - Extended `OnlineGameState` with `rematchOfferedByMe`, `rematchOfferedToMe`, `rematchOfferedByUsername`, `isRematchLoading`, `tournamentId`, and getter `isTournamentGame`.
+   - Added actions in `OnlineGameNotifier`: `offerRematch()`, `respondRematch(bool accept)`, `cancelRematch()`.
+   - Subscribed to `rematch:offered`, `rematch:declined`, `rematch:cancelled`, `error`.
+   - Reused authoritative `game:init` flow for clean transition to Game 2 with color swap and state reset.
+3. **UI & Invariants**:
+   - Rendered Rematch controls on `OnlineGameScreen` after normal game conclusion (`isEnded`).
+   - Suppressed all rematch controls for tournament games (`isTournamentGame == true`).
+   - Handled incoming offer, waiting state with cancellation, and server error banner display.
+4. **Testing & Validation**:
+   - 27 targeted tests in `test/unit/m7_rematch_mobile_test.dart` and `test/widget/m7_rematch_screen_test.dart` (27/27 PASS).
+   - `flutter analyze --no-pub`: 0 issues found.
+   - Full Flutter test suite: 304/304 tests passed, 0 failed, 0 skipped.
+   - Android debug APK build: PASS (`381,826,162` bytes).
+   - Zero server/web/packages modifications.
+

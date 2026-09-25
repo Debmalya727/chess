@@ -25,13 +25,86 @@ class OnlineGameNotifier extends StateNotifier<OnlineGameState?> {
   void _initSubscriptions() {
     _unsubscribers.add(wsClient.on(WsEvents.gameInit, (payload) {
       final gameId = payload['gameId'] as String?;
-      if (state == null || state!.gameId == gameId) {
+      if (state == null || state!.gameId == gameId || state!.isEnded) {
         initializeGame(payload);
       }
     }));
 
     _unsubscribers.add(wsClient.on(WsEvents.queueMatched, (payload) {
       initializeGame(payload);
+    }));
+
+    _unsubscribers.add(wsClient.on(WsEvents.rematchOffered, (payload) {
+      if (state == null) return;
+      final gameId = payload['gameId'] as String?;
+      if (gameId != state!.gameId) return;
+
+      final offeredBy = payload['offeredBy'] as String?;
+      final offeredByUsername = payload['offeredByUsername'] as String?;
+
+      if (offeredBy != currentUserId) {
+        state = state!.copyWith(
+          rematchOfferedToMe: true,
+          rematchOfferedByUsername: offeredByUsername ?? state!.opponentUsername,
+          isRematchLoading: false,
+        );
+      } else {
+        state = state!.copyWith(
+          rematchOfferedByMe: true,
+          isRematchLoading: false,
+        );
+      }
+    }));
+
+    _unsubscribers.add(wsClient.on(WsEvents.rematchDeclined, (payload) {
+      if (state == null) return;
+      final gameId = payload['gameId'] as String?;
+      if (gameId != state!.gameId) return;
+
+      state = state!.copyWith(
+        rematchOfferedByMe: false,
+        rematchOfferedToMe: false,
+        isRematchLoading: false,
+      );
+    }));
+
+    _unsubscribers.add(wsClient.on(WsEvents.rematchCancelled, (payload) {
+      if (state == null) return;
+      final gameId = payload['gameId'] as String?;
+      if (gameId != state!.gameId) return;
+
+      final reason = payload['reason'] as String?;
+      String? errorMsg;
+      if (reason == 'timeout') {
+        errorMsg = 'Rematch offer expired.';
+      } else if (reason == 'opponent_disconnected') {
+        errorMsg = 'Opponent disconnected.';
+      } else if (reason == 'cancelled_by_player') {
+        errorMsg = 'Rematch offer was cancelled.';
+      }
+
+      state = state!.copyWith(
+        rematchOfferedByMe: false,
+        rematchOfferedToMe: false,
+        isRematchLoading: false,
+        errorMessage: errorMsg,
+      );
+    }));
+
+    _unsubscribers.add(wsClient.on(WsEvents.error, (payload) {
+      if (state == null) return;
+      final code = payload['code'] as String?;
+      final message = payload['message'] as String?;
+      if (code != null &&
+          (code.startsWith('REMATCH_') ||
+              code == 'GAME_NOT_FINISHED' ||
+              code == 'TOURNAMENT_REMATCH_NOT_ALLOWED')) {
+        state = state!.copyWith(
+          isRematchLoading: false,
+          rematchOfferedByMe: false,
+          errorMessage: message ?? code,
+        );
+      }
     }));
 
     _unsubscribers.add(wsClient.on(WsEvents.moveAccepted, (payload) {
@@ -199,6 +272,8 @@ class OnlineGameNotifier extends StateNotifier<OnlineGameState?> {
 
     final movesList = (payload['moves'] as List<dynamic>?)?.map((m) => m.toString()).toList() ?? [];
 
+    final tournamentId = payload['tournamentId'] as String?;
+
     state = OnlineGameState(
       gameId: gameId,
       roomCode: roomCode,
@@ -216,6 +291,11 @@ class OnlineGameNotifier extends StateNotifier<OnlineGameState?> {
       stateVersion: stateVersion,
       moves: movesList,
       clock: clock,
+      tournamentId: tournamentId,
+      rematchOfferedByMe: false,
+      rematchOfferedToMe: false,
+      rematchOfferedByUsername: null,
+      isRematchLoading: false,
     );
     wsClient.updateStateVersion(gameId, stateVersion);
   }
@@ -253,6 +333,35 @@ class OnlineGameNotifier extends StateNotifier<OnlineGameState?> {
   void resign() {
     if (state == null || state!.isEnded) return;
     wsClient.send(WsEvents.gameResign, {'gameId': state!.gameId});
+  }
+
+  void offerRematch() {
+    if (state == null || !state!.isEnded || state!.isTournamentGame || state!.rematchOfferedByMe) return;
+    state = state!.copyWith(
+      rematchOfferedByMe: true,
+      isRematchLoading: true,
+      errorMessage: null,
+    );
+    wsClient.send(WsEvents.gameRematch, {'gameId': state!.gameId});
+  }
+
+  void respondRematch(bool accept) {
+    if (state == null || !state!.isEnded) return;
+    if (accept) {
+      state = state!.copyWith(isRematchLoading: true, errorMessage: null);
+    } else {
+      state = state!.copyWith(rematchOfferedToMe: false, isRematchLoading: false);
+    }
+    wsClient.send(WsEvents.rematchRespond, {
+      'gameId': state!.gameId,
+      'accept': accept,
+    });
+  }
+
+  void cancelRematch() {
+    if (state == null || !state!.isEnded || !state!.rematchOfferedByMe) return;
+    state = state!.copyWith(rematchOfferedByMe: false, isRematchLoading: false);
+    wsClient.send(WsEvents.rematchCancel, {'gameId': state!.gameId});
   }
 
   void reconnect() {

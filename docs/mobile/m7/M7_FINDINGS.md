@@ -166,3 +166,41 @@ During Phase 1, the architecture was locked into [M7_REMATCH_CONTRACT.md](file:/
    - Rematch unit tests (`rematch.test.js`): 20 pass, 0 fail.
    - Rematch router tests (`rematchRouter.test.js`): 4 pass, 0 fail.
    - Full server unit test suite: 16 suites, 78 tests pass, 0 fail.
+
+---
+
+## 9. Phase 3 Mobile Rematch Client Findings & Verification
+
+1. **Protocol Integration**:
+   - Synchronized `apps/mobile/lib/core/protocol/ws_events.dart` with backend Phase 2 events:
+     - `gameRematch = 'game:rematch'`
+     - `rematchRespond = 'game:rematch:respond'`
+     - `rematchCancel = 'game:rematch:cancel'`
+     - `rematchOffered = 'rematch:offered'`
+     - `rematchDeclined = 'rematch:declined'`
+     - `rematchCancelled = 'rematch:cancelled'`
+   - Added corresponding error codes to `apps/mobile/lib/core/protocol/error_codes.dart`:
+     - `GAME_NOT_FINISHED`, `TOURNAMENT_REMATCH_NOT_ALLOWED`, `REMATCH_ALREADY_PENDING`, `REMATCH_ALREADY_RESOLVED`, `REMATCH_NOT_FOUND`, `REMATCH_EXPIRED`.
+
+2. **Game:Init Transition & Reconnection Condition**:
+   - `OnlineGameNotifier` originally gated `game:init` with `if (state == null || state!.gameId == gameId)`.
+   - When transitioning from Game 1 to Game 2 via Rematch, the new game arrives with a new `gameId` emitted by the authoritative backend.
+   - The condition was refined to: `if (state == null || state!.gameId == gameId || state!.isEnded)`. This ensures completed games seamlessly accept the new authoritative game without requiring a manual route teardown or resetting state.
+   - All server-authoritative fields (`gameId`, `roomCode`, `fen`, `turn`, `myColor`, `clocks`, `stateVersion`, `moves`) are completely reset by `initializeGame`, and local rematch flags are reset to `false`/`null`.
+
+3. **Tournament Safety**:
+   - Evaluated directly from server payload: `gameState.isTournamentGame => tournamentId != null && tournamentId!.isNotEmpty`.
+   - In `OnlineGameScreen`, all rematch controls (`Rematch`, `Cancel`, `Accept`, `Decline`) are completely omitted when `isTournamentGame` is true.
+   - If a client-side glitch or bypass triggers `offerRematch()`, the notifier explicitly guards: `if (state!.isTournamentGame) return;`.
+   - Server-side error `TOURNAMENT_REMATCH_NOT_ALLOWED` updates `errorMessage` gracefully.
+
+4. **Widget Testing Micro-Task Lesson**:
+   - `CircularProgressIndicator` creates infinite animation loops; calling `pumpAndSettle()` while waiting indicators are active causes timeout assertions.
+   - Using single micro-pumps (`await tester.pump()`) reliably advances widget testing state for indeterminate spinners.
+
+5. **Test & Build Verification**:
+   - 27 targeted tests in `test/unit/m7_rematch_mobile_test.dart` and `test/widget/m7_rematch_screen_test.dart` (27/27 PASS).
+   - Full Flutter test suite: 304 tests passed, 0 failed, 0 skipped.
+   - `flutter analyze --no-pub`: 0 issues found.
+   - Android debug APK build: PASS (`381,826,162` bytes).
+

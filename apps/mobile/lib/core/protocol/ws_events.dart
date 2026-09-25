@@ -12,6 +12,8 @@ abstract class WsEvents {
   static const String drawRespond = 'draw:respond';
   static const String gameResign = 'game:resign';
   static const String gameRematch = 'game:rematch';
+  static const String rematchRespond = 'game:rematch:respond';
+  static const String rematchCancel = 'game:rematch:cancel';
   static const String ping = 'ping';
 
   // Server -> Client
@@ -23,6 +25,9 @@ abstract class WsEvents {
   static const String gameEnded = 'game:ended';
   static const String drawOffered = 'draw:offered';
   static const String drawDeclined = 'draw:declined';
+  static const String rematchOffered = 'rematch:offered';
+  static const String rematchDeclined = 'rematch:declined';
+  static const String rematchCancelled = 'rematch:cancelled';
   static const String playerPresence = 'player:presence';
   static const String queueStatus = 'queue:status';
   static const String queueMatched = 'queue:matched';

@@ -41,4 +41,12 @@ abstract class ErrorCodes {
   static const String insufficientPlayers = 'INSUFFICIENT_PLAYERS';
   static const String roundInProgress = 'ROUND_IN_PROGRESS';
   static const String pairingError = 'PAIRING_ERROR';
+
+  // Rematch
+  static const String gameNotFinished = 'GAME_NOT_FINISHED';
+  static const String tournamentRematchNotAllowed = 'TOURNAMENT_REMATCH_NOT_ALLOWED';
+  static const String rematchAlreadyPending = 'REMATCH_ALREADY_PENDING';
+  static const String rematchAlreadyResolved = 'REMATCH_ALREADY_RESOLVED';
+  static const String rematchNotFound = 'REMATCH_NOT_FOUND';
+  static const String rematchExpired = 'REMATCH_EXPIRED';
 }
