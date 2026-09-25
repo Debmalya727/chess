@@ -256,3 +256,26 @@ During Phase 1, the architecture was locked into [M7_REMATCH_CONTRACT.md](file:/
    - `adb devices` returned 0 devices. No physical Android device was connected to the host during execution.
    - Host is Windows 11 Enterprise; macOS/iOS build toolchain is not present.
    - These limitations are formally recorded in the final classification.
+
+---
+
+## Phase 6 Findings: Production Deployment & Smoke Validation
+
+1. **Pre-Deployment Regression Baseline Verification**:
+   - All 4 layers verified 100% passing prior to deployment: Protocol (8/8), Backend Unit (78/78), Web (16/16), Mobile (304/304).
+   - Zero git diff formatting or whitespace issues detected.
+   - Web production build passed in 3.09s (`dist/` generated cleanly).
+   - Fastify production startup verified with protocol constants and rematch handlers registered.
+
+2. **Render Production Pre-Deployment State (Before State)**:
+   - Remote health: `GET /health` returned HTTP 200 `{"status":"ok","database":"ok","redis":"ok"}`.
+   - Remote readiness: `GET /readiness` returned HTTP 200 `{"status":"ready","database":"connected","redis":"ok"}`.
+   - Authenticated test socket probe: Connecting to `wss://chess-api-hszp.onrender.com/ws` with valid user session and emitting `game:rematch` returned:
+     `{"event":"error","payload":{"code":"UNKNOWN_EVENT","message":"Event 'game:rematch' is not supported."},"timestamp":1790337443626}`.
+   - This established the definitive BEFORE state on production.
+
+3. **Production Deployment Block Barrier**:
+   - The production Render service `chess-api` tracks branch `main` with `autoDeploy: false`.
+   - The remote GitHub repository (`https://github.com/Debmalya727/chess.git`) branch `origin/main` remains at commit `629ac6e`.
+   - Pushing the local branch `mobile/phase-m6-production-hardening` (HEAD `e830aa0`) to `origin/main` requires interactive GitHub authentication or a personal access token.
+   - In accordance with user selection, Phase 6 was concluded as `BLOCKED` with full pre-deployment regression, build validation, and before-state evidence documented.

@@ -190,3 +190,27 @@ Milestone M7 follows the successful completion of M6 Production Hardening. Its p
    - 0 source code changes required across backend, mobile, web, and protocol.
 5. **Classification**:
    - `COMPLETE WITH LIMITATIONS` (Limitations: Remote cloud deployment pending; no physical Android device attached; iOS not executable on Windows).
+
+---
+
+## Phase 6: Production Deployment & Smoke Validation (BLOCKED)
+
+1. **Pre-Deployment Regression Baseline**:
+   - Protocol: 8/8 passed (`packages/protocol`)
+   - Backend Unit: 78/78 passed (`apps/server`)
+   - Web Client: 16/16 passed (`apps/web/client`)
+   - Mobile: 304/304 passed (`apps/mobile`)
+   - Git Diff Check: 0 issues
+2. **Build & Startup Validation**:
+   - Web Production Bundle: Built cleanly with Vite in 3.09s (`apps/web/client/dist`).
+   - Server Production Startup: Fastify initialized in production mode, Rematch handlers and protocol constants verified.
+3. **Remote Production State Verification (Before State)**:
+   - `GET https://chess-api-hszp.onrender.com/health`: HTTP 200 `{"status":"ok","database":"ok","redis":"ok"}`.
+   - `GET https://chess-api-hszp.onrender.com/readiness`: HTTP 200 `{"status":"ready","database":"connected","redis":"ok"}`.
+   - WebSocket authenticated probe to `wss://chess-api-hszp.onrender.com/ws`: Emitted `game:rematch`, received `{"code":"UNKNOWN_EVENT","message":"Event 'game:rematch' is not supported."}` confirming the cloud instance runs pre-M7 `main` code.
+4. **Deployment Status & Block Reason**:
+   - Render service `chess-api` tracks GitHub repository `https://github.com/Debmalya727/chess.git` branch `main` (`autoDeploy: false`).
+   - Pushing the local `mobile/phase-m6-production-hardening` branch containing M7 to `origin/main` requires GitHub credentials / OAuth which requires interactive promotion.
+   - User confirmed concluding Phase 6 as `BLOCKED` with full pre-deployment audit, baseline verification, and before-state evidence.
+5. **Phase 6 Classification**:
+   - **BLOCKED**
