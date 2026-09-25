@@ -128,3 +128,15 @@ To implement Rematch cleanly across Backend, Web, and Mobile, the following prot
 3. **Time Control & Rated Flag**: Should rematch always preserve the exact time control and rated setting of the initial match?
    *(Standard chess practice: Yes).*
 4. **Scope**: Should M7 implement Rematch across Backend + Web + Mobile simultaneously, or should M7 focus on Mobile contract readiness while coordinating with backend?
+
+---
+
+## 7. Phase 1 Design Resolutions
+
+During Phase 1, the architecture was locked into [M7_REMATCH_CONTRACT.md](file:///d:/Projects/Chess/docs/mobile/m7/M7_REMATCH_CONTRACT.md):
+
+1. **Resolution on Protocol**: Adopted Option A (dedicated WebSocket handler in `apps/server/src/websocket/handlers/rematch.js`) for minimal latency, zero routing overhead, and direct reuse of the active room sockets.
+2. **Resolution on Colors**: Strictly deterministic color inversion enforced by server (Game 2 White = Game 1 Black; Game 2 Black = Game 1 White).
+3. **Resolution on Ratings & Time Control**: Verbatim inheritance of `timeControl`, `rated`, and `ratingType`. Ratings updated after Game 1 are used as starting Elo for Game 2.
+4. **Resolution on Invariant**: Single-game invariant enforced via in-memory concurrency lock; simultaneous mutual requests coalesce into one acceptance.
+5. **Resolution on Tournaments**: Hard ban on rematch in tournament games (`tournamentId != null`).

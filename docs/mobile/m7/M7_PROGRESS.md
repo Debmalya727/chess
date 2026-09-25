@@ -1,8 +1,8 @@
 # M7 — Social Polish & Post-Game Lifecycle Progress Tracker
 
 **Branch**: `mobile/phase-m6-production-hardening`
-**Current Phase**: Phase 0 — Architecture & Contract Audit Only
-**Status**: AUDIT COMPLETE / AWAITING USER REVIEW
+**Current Phase**: Phase 1 — Rematch Implementation Contract & Design (COMPLETE)
+**Status**: DESIGN COMPLETE / CONTRACT LOCKED / AWAITING USER INSTRUCTION
 **Last Updated**: 2026-09-25
 
 ---
@@ -27,36 +27,41 @@ Milestone M7 follows the successful completion of M6 Production Hardening. Its p
   - [x] Step 8 — Test Gap Audit
   - [x] Step 9 — M7 Audit Documentation (`M7_PROGRESS.md`, `M7_FINDINGS.md`, `M7_CONTRACT_AUDIT.md`)
   - [x] Step 10 — Zero Source Implementation Verification
-  - [x] Step 11 — Phase 0 Documentation Commit
-- [ ] **Phase 1 — Specification & Implementation Scope Alignment** (Pending User Review)
-- [ ] **Phase 2 — Implementation** (Not Started)
+  - [x] Step 11 — Phase 0 Documentation Commit (`cc783b1`)
+- [x] **Phase 1 — Rematch Implementation Contract & Design**
+  - [x] Step 1 — Read Existing Contracts across Backend, Protocol, Web, Mobile
+  - [x] Step 2 — Rematch State Machine Specification
+  - [x] Step 3 — Protocol Design & Payloads
+  - [x] Step 4 — Authoritative New-Game Creation & Deterministic Color Inversion
+  - [x] Step 5 — Rating & Competitive Integration Rules
+  - [x] Step 6 — Authorization & Security Guards
+  - [x] Step 7 — Concurrency, Idempotency & Single-Game Invariant
+  - [x] Step 8 — Disconnect & Reconnect Lifecycle
+  - [x] Step 9 — Mobile Client Architecture
+  - [x] Step 10 — Web Client Architecture
+  - [x] Step 11 — Comprehensive Test Matrix
+  - [x] Step 12 — Write Design Document (`M7_REMATCH_CONTRACT.md`)
+  - [x] Step 13 — Zero Source Implementation Verification
+  - [x] Step 14 — Phase 1 Documentation Commit
+- [ ] **Phase 2 — Rematch Implementation** (Pending User Review)
 - [ ] **Phase 3 — Testing & Verification** (Not Started)
 - [ ] **Phase 4 — Packaging & Build Validation** (Not Started)
 
 ---
 
-## Phase 0 Audit Summary
+## Phase 1 Summary — Contract Locked
 
-1. **Protocol Audit**:
-   - `WS_EVENTS.GAME_REMATCH: 'game:rematch'` was defined as a client-to-server constant stub in `@chess/protocol` and `apps/mobile/lib/core/protocol/ws_events.dart`.
-   - No server-to-client rematch events (`rematch:offered`, `rematch:declined`, `rematch:cancelled`) exist in `WS_EVENTS`.
-   - No rematch-specific error codes exist in `ERROR_CODES`.
-
-2. **Backend Audit (`apps/server`)**:
-   - `apps/server/src/websocket/router.js` does NOT route `game:rematch`. Any incoming `game:rematch` hits the `default` switch branch and returns `UNKNOWN_EVENT`.
-   - `ActiveGameSession` marks `room.status = 'FINISHED'` and `isEnded = true` upon termination.
-   - `games` table in MySQL/TiDB schema defines `room_code VARCHAR(16) NOT NULL UNIQUE`.
-   - A rematch CANNOT reuse the existing `room_code` or mutate the finished game. It must create a distinct game entity with a fresh `gameId` and fresh `roomCode`.
-
-3. **Web Audit (`apps/web`)**:
-   - Web `OnlineMode.jsx` only offers "Download PGN" and "Back to Lobby" when a game finishes.
-   - There is no rematch button, hook logic, or WebSocket listener on web.
-
-4. **Mobile Audit (`apps/mobile`)**:
-   - Mobile `OnlineGameScreen` only displays a "Lobby" button when `gameState.isEnded == true`.
-   - `OnlineGameNotifier` has no rematch action or event handling.
-   - Fair-play isolation is 100% verified: Stockfish is strictly absent from online multiplayer providers and views.
-
-5. **Implementation Status**:
-   - ZERO source code changes performed.
-   - Audit artifacts only.
+1. **Protocol Specification Locked**:
+   - Client -> Server: `game:rematch`, `game:rematch:respond`, `game:rematch:cancel`
+   - Server -> Client: `rematch:offered`, `rematch:declined`, `rematch:cancelled`, `game:init`
+   - Error Codes: `GAME_NOT_FINISHED`, `TOURNAMENT_REMATCH_NOT_ALLOWED`, `REMATCH_ALREADY_PENDING`, `REMATCH_ALREADY_RESOLVED`, `REMATCH_NOT_FOUND`, `REMATCH_EXPIRED`
+2. **Deterministic Color Inversion**:
+   - Game 2 White = Game 1 Black; Game 2 Black = Game 1 White (enforced strictly by server).
+3. **Database Invariant**:
+   - Every rematch creates a brand new row in `games` with fresh `id` and unique `room_code`.
+4. **Concurrency Invariant**:
+   - "At most one rematch game may be created for a given completed game." Simultaneous requests cleanly coalesce into single mutual acceptance.
+5. **Tournament Guard**:
+   - Rematch permanently disabled in tournament games (`tournamentId != null`).
+6. **Implementation Status**:
+   - ZERO production code changes made; design and contract locked in `M7_REMATCH_CONTRACT.md`.
